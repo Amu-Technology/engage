@@ -134,62 +134,62 @@ export default function HomePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* ユーザー一覧 */}
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
-          <h2 className="text-xl font-bold p-4 bg-gray-100">ユーザー一覧</h2>
-          {isLoading ? (
-            <div className="p-4 text-center">読み込み中...</div>
-          ) : error ? (
-            <div className="p-4 text-red-500">{error}</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      名前
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      メールアドレス
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      役割
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      所属
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      操作
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user) => (
-                    <tr key={user.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {user.name || '未設定'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {user.role || '未設定'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <h2 className="text-xl font-bold p-4 bg-gray-100">ユーザー一覧</h2>
+        {isLoading ? (
+          <div className="p-4 text-center">読み込み中...</div>
+        ) : error ? (
+          <div className="p-4 text-red-500">{error}</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    名前
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    メールアドレス
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    役割
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    所属
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    操作
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.map((user) => (
+                  <tr key={user.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {user.name || '未設定'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {user.role || '未設定'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                         {user.organization?.name || '未設定'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Button
-                          variant="outline"
-                          size="sm"
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
                           onClick={() => handleUserEdit(user)}
-                        >
-                          編集
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                      >
+                        編集
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         </div>
 
         {/* 組織一覧 */}

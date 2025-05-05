@@ -27,6 +27,113 @@ model Organization {
   id        Int      @id @default(autoincrement())
   name      String
   users     User[]
+  leads     Lead[]
+  tasks     Task[]
+  events    Event[]
+  memos     Memo[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Lead {
+  id                    String   @id @default(cuid())
+  organizationId        Int
+  type                 String   @default("individual")
+  name                 String
+  nameReading          String?
+  nickname             String?
+  district             String?
+  homePhone            String?
+  mobilePhone          String?
+  company              String?
+  position             String?
+  postalCode           String?
+  address              String?
+  phone                String?
+  email                String?
+  referrer             String?
+  evaluation           Int?     @default(0)
+  status               String   @default("potential")
+  profileImagePath     String?
+  businessCardPath     String?
+  isPaid               Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  organization         Organization @relation(fields: [organizationId], references: [id])
+  familyMembers        FamilyMember[]
+  snsAccounts          SnsAccount?
+  notificationPreferences NotificationPreference?
+  tasks                Task[]
+  events               Event[]
+  memos                Memo[]
+}
+
+model FamilyMember {
+  id          String   @id @default(cuid())
+  leadId      String
+  name        String
+  nameReading String?
+  relationship String?
+  lead        Lead     @relation(fields: [leadId], references: [id])
+}
+
+model SnsAccount {
+  id          String   @id @default(cuid())
+  leadId      String   @unique
+  lineUserId  String?
+  facebookUserId String?
+  facebookPageId String?
+  twitterHandle String?
+  instagramUsername String?
+  lead        Lead     @relation(fields: [leadId], references: [id])
+}
+
+model NotificationPreference {
+  id          String   @id @default(cuid())
+  leadId      String   @unique
+  email       Boolean  @default(false)
+  line        Boolean  @default(false)
+  facebook    Boolean  @default(false)
+  instagram   Boolean  @default(false)
+  lead        Lead     @relation(fields: [leadId], references: [id])
+}
+
+model Task {
+  id            String   @id @default(cuid())
+  organizationId Int
+  type          String
+  assignee      String
+  dueDate       DateTime
+  status        String   @default("pending")
+  relatedLeadId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  organization  Organization @relation(fields: [organizationId], references: [id])
+  lead          Lead?    @relation(fields: [relatedLeadId], references: [id])
+}
+
+model Event {
+  id            String   @id @default(cuid())
+  organizationId Int
+  title         String
+  startDate     DateTime
+  endDate       DateTime
+  location      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  organization  Organization @relation(fields: [organizationId], references: [id])
+  leads         Lead[]
+}
+
+model Memo {
+  id            String   @id @default(cuid())
+  leadId        String
+  organizationId Int
+  type          String
+  timestamp     DateTime
+  note          String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lead          Lead     @relation(fields: [leadId], references: [id])
+  organization  Organization @relation(fields: [organizationId], references: [id])
 }

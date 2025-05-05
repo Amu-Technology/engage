@@ -36,13 +36,14 @@ export default auth(async (req) => {
         return NextResponse.redirect(new URL("/", req.nextUrl))
       }
 
-      const response = await fetch(`${req.nextUrl.origin}/api/users?email=${session.user.email}`)
+      // APIエンドポイントを使用してユーザー情報を確認
+      const response = await fetch(`${req.nextUrl.origin}/api/users/check?email=${session.user.email}`)
       if (!response.ok) {
         return NextResponse.redirect(new URL("/", req.nextUrl))
       }
 
-      const user = await response.json()
-      if (!user) {
+      const { exists } = await response.json()
+      if (!exists) {
         return NextResponse.redirect(new URL("/", req.nextUrl))
       }
     } catch (error) {

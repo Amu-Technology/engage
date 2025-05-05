@@ -4,12 +4,12 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import * as React from "react";
 import {
-  IconChartBar,
   IconCompass,
   IconDashboard,
   IconFolder,
   IconListDetails,
   IconUsers,
+  IconUserCheck,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -32,14 +32,14 @@ const navMain = [
     icon: IconDashboard,
   },
   {
-    title: "売上目標",
-    url: "/sales-target",
+    title: "団体名簿",
+    url: "/dashboard/organizations",
     icon: IconListDetails,
   },
   {
-    title: "発注管理",
-    url: "/order",
-    icon: IconChartBar,
+    title: "有権者名簿",
+    url: "/dashboard/leads",
+    icon: IconUserCheck,
   },
   {
     title: "設定",
