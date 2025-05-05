@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,118 +10,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Account {
-  id                String  @id
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  userId            String  @db.Uuid
-  users             users   @relation(fields: [userId], references: [id])
-
-  @@unique([provider, providerAccountId])
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String?
+  image         String?
+  role          String?      @default("user")
+  org_id        Int?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  googleId      String?      @unique
+  organization  Organization? @relation(fields: [org_id], references: [id])
 }
 
-model Session {
-  id           String   @id
-  sessionToken String   @unique
-  expires      DateTime
-  userId       String   @db.Uuid
-  users        users    @relation(fields: [userId], references: [id])
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
-
-model order_items {
-  id         Int       @id @default(autoincrement())
-  order_id   Int?
-  product_id Int?
-  quantity   Int
-  price      Decimal   @db.Decimal(10, 2)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  orders     orders?   @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  products   products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model orders {
-  id           Int           @id @default(autoincrement())
-  store_id     Int
-  user_id      String?       @db.Uuid
-  total_amount Decimal       @db.Decimal(10, 2)
-  status       status
-  created_at   DateTime?     @default(now()) @db.Timestamp(6)
-  updated_at   DateTime?     @default(now()) @db.Timestamp(6)
-  order_items  order_items[]
-  stores       stores        @relation(fields: [store_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users        users?        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model products {
-  id           Int           @id @default(autoincrement())
-  store_id     Int
-  image_url    String
-  name         String
-  description  String?
-  status       status
-  price        Decimal       @db.Decimal(10, 2)
-  stock        Int
-  available_at DateTime      @db.Timestamp(6)
-  created_at   DateTime?     @default(now()) @db.Timestamp(6)
-  updated_at   DateTime?     @default(now()) @db.Timestamp(6)
-  order_items  order_items[]
-  stores       stores        @relation(fields: [store_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model stores {
-  id         Int        @id @default(autoincrement())
-  name       String
-  address    String
-  phone      String
-  email      String
-  status     status     @default(active)
-  created_at DateTime?  @default(now()) @db.Timestamp(6)
-  updated_at DateTime?  @default(now()) @db.Timestamp(6)
-  orders     orders[]
-  products   products[]
-  users      users[]
-}
-
-model users {
-  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name           String?
-  email          String    @unique
-  email_verified DateTime? @db.Timestamp(6)
-  image          String?
-  role           role?     @default(store_staff)
-  store_id       Int?
-  created_at     DateTime? @default(now()) @db.Timestamp(6)
-  updated_at     DateTime? @default(now()) @db.Timestamp(6)
-  Account        Account[]
-  Session        Session[]
-  orders         orders[]
-  stores         stores?   @relation(fields: [store_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-enum role {
-  admin
-  store_manager
-  store_staff
-}
-
-enum status {
-  active
-  inactive
-  archived
+model Organization {
+  id        Int      @id @default(autoincrement())
+  name      String
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

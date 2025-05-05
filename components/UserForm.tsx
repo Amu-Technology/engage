@@ -13,48 +13,57 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-interface Store {
-  id: number
-  name: string
+interface User {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string | null;
+  org_id: number | null;
+  created_at: Date | null;
+  updated_at: Date | null;
+  googleId: string | null;
+}
+
+interface Organization {
+  id: number;
+  name: string;
+  users: User[];
+  created_at: Date;
+  updated_at: Date;
 }
 
 interface UserFormProps {
-  isOpen: boolean
-  onClose: () => void
-  onSuccess: () => void
-  user?: {
-    id: string
-    name: string | null
-    email: string
-    role: string | null
-    store_id: number | null
-  }
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  user?: User;
 }
 
 export function UserForm({ isOpen, onClose, onSuccess, user }: UserFormProps) {
   const [name, setName] = useState(user?.name || '')
   const [email, setEmail] = useState(user?.email || '')
   const [role, setRole] = useState<'admin' | 'store_manager' | 'store_staff' | null>(user?.role as 'admin' | 'store_manager' | 'store_staff' | null || null)
-  const [storeId, setStoreId] = useState<string>(user?.store_id?.toString() || '0')
-  const [stores, setStores] = useState<Store[]>([])
+  const [orgId, setOrgId] = useState<string>(user?.org_id?.toString() || '0')
+  const [googleId, setGoogleId] = useState(user?.googleId || '')
+  const [organizations, setOrganizations] = useState<Organization[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function fetchStores() {
+    async function fetchOrganizations() {
       try {
-        const response = await fetch('/api/stores')
+        const response = await fetch('/api/organizations')
         if (!response.ok) {
-          throw new Error('店舗一覧の取得に失敗しました')
+          throw new Error('組織一覧の取得に失敗しました')
         }
         const data = await response.json()
-        setStores(data)
+        setOrganizations(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました')
       }
     }
 
-    fetchStores()
+    fetchOrganizations()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,7 +73,7 @@ export function UserForm({ isOpen, onClose, onSuccess, user }: UserFormProps) {
 
     try {
       const response = await fetch('/api/users', {
-        method: user ? 'PATCH' : 'POST',
+        method: user ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -73,7 +82,8 @@ export function UserForm({ isOpen, onClose, onSuccess, user }: UserFormProps) {
           name,
           email,
           role,
-          store_id: storeId === '0' ? null : parseInt(storeId),
+          org_id: orgId === '0' ? null : parseInt(orgId),
+          googleId: googleId || null,
         }),
       })
 
@@ -136,20 +146,32 @@ export function UserForm({ isOpen, onClose, onSuccess, user }: UserFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="store">店舗</Label>
-            <Select value={storeId} onValueChange={setStoreId}>
+            <Label htmlFor="organization">所属組織</Label>
+            <Select value={orgId} onValueChange={setOrgId}>
               <SelectTrigger>
-                <SelectValue placeholder="店舗を選択" />
+                <SelectValue placeholder="組織を選択" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="0">未選択</SelectItem>
-                {stores.map((store) => (
-                  <SelectItem key={store.id} value={store.id.toString()}>
-                    {store.name}
+                {organizations.map((org) => (
+                  <SelectItem key={org.id} value={org.id.toString()}>
+                    {org.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="googleId">Google ID</Label>
+            <Input
+              id="googleId"
+              value={googleId}
+              onChange={(e) => setGoogleId(e.target.value)}
+              placeholder="Google ID"
+              disabled
+              className="bg-gray-100"
+            />
           </div>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
