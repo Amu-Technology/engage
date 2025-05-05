@@ -42,15 +42,21 @@ export async function POST(request: Request) {
     }
 
     // リードのグループを更新
-    await prisma.lead.updateMany({
-      where: {
-        id: { in: leadIds },
-        organizationId: user.organization.id,
-      },
-      data: {
-        groupId: groupId || null,
-      },
-    })
+    if (groupId) {
+      await prisma.leadGroup.createMany({
+        data: leadIds.map(leadId => ({
+          leadId,
+          groupId
+        })),
+        skipDuplicates: true
+      })
+    } else {
+      await prisma.leadGroup.deleteMany({
+        where: {
+          leadId: { in: leadIds }
+        }
+      })
+    }
 
     return NextResponse.json({ message: 'グループを更新しました' })
   } catch (error) {

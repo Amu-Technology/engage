@@ -33,6 +33,7 @@ model Organization {
   memos     Memo[]
   memoTypes MemoType[]
   groups    Group[]
+  leadsStatuses LeadsStatus[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -42,7 +43,7 @@ model Group {
   name          String
   organizationId Int
   organization  Organization @relation(fields: [organizationId], references: [id])
-  leads         Lead[]
+  leads         LeadGroup[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -50,8 +51,7 @@ model Group {
 model Lead {
   id                    String   @id @default(cuid())
   organizationId        Int
-  groupId              String?
-  group                Group?    @relation(fields: [groupId], references: [id])
+  groups               LeadGroup[]
   type                 String   @default("individual")
   name                 String
   nameReading          String?
@@ -68,6 +68,8 @@ model Lead {
   referrer             String?
   evaluation           Int?     @default(0)
   status               String   @default("potential")
+  statusId             String?
+  leadsStatus          LeadsStatus? @relation(fields: [statusId], references: [id])
   profileImagePath     String?
   businessCardPath     String?
   isPaid               Boolean  @default(false)
@@ -162,4 +164,27 @@ model MemoType {
   memos         Memo[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model LeadsStatus {
+  id            String   @id @default(cuid())
+  name          String
+  color         String?
+  organizationId Int
+  organization  Organization @relation(fields: [organizationId], references: [id])
+  leads         Lead[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model LeadGroup {
+  id        String   @id @default(cuid())
+  leadId    String
+  groupId   String
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  group     Group    @relation(fields: [groupId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([leadId, groupId])
 }

@@ -42,6 +42,7 @@ import {
 } from '@/components/ui/select'
 import { LeadForm } from './components/LeadForm'
 import { LeadActions } from './components/LeadActions'
+import { MultiSelect } from "@/components/ui/multi-select"
 
 interface Lead {
   id: string
@@ -66,6 +67,16 @@ interface Lead {
     id: string
     name: string
   } | null
+  statusId: string | null
+  leadsStatus: {
+    id: string
+    name: string
+    color: string | null
+  } | null
+  groups?: {
+    id: string
+    groupId: string
+  }[]
 }
 
 interface Group {
@@ -88,6 +99,7 @@ export default function LeadsPage() {
   })
   const [globalFilter, setGlobalFilter] = useState('')
   const [tempSelectedGroup, setTempSelectedGroup] = useState<string>('')
+  const [leadsStatuses, setLeadsStatuses] = useState<{ id: string; name: string; color: string | null }[]>([])
 
   const fetchLeads = async () => {
     try {
@@ -123,9 +135,22 @@ export default function LeadsPage() {
     }
   }
 
+  const fetchLeadsStatuses = async () => {
+    try {
+      const response = await fetch('/api/leads-status')
+      if (!response.ok) throw new Error('ステータスの取得に失敗しました')
+      const data = await response.json()
+      setLeadsStatuses(data)
+    } catch (err) {
+      console.error('エラー:', err)
+      toast.error('ステータスの取得に失敗しました')
+    }
+  }
+
   useEffect(() => {
     fetchLeads()
     fetchGroups()
+    fetchLeadsStatuses()
   }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,36 +187,45 @@ export default function LeadsPage() {
     }
   }
 
-  const handleGroupChange = async () => {
-    const selectedRows = table.getSelectedRowModel().rows
-    if (selectedRows.length === 0) {
-      toast.error('リードを選択してください')
-      return
-    }
-
+  const handleGroupChange = async (leadId: string, groupIds: string[]) => {
     try {
-      const leadIds = selectedRows.map(row => row.original.id)
-      const response = await fetch('/api/leads/update-groups', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          leadIds,
-          groupId: tempSelectedGroup === 'none' ? null : tempSelectedGroup,
-        }),
+      const response = await fetch(`/api/leads/${leadId}/groups`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groupIds }),
       })
 
-      if (!response.ok) {
-        throw new Error('グループの更新に失敗しました')
-      }
+      if (!response.ok) throw new Error('グループの更新に失敗しました')
 
+      const updatedLead = await response.json()
+      setLeads((prev) =>
+        prev.map((lead) => (lead.id === leadId ? updatedLead : lead))
+      )
       toast.success('グループを更新しました')
-      fetchLeads()
-      setRowSelection({})
-    } catch (error) {
-      console.error('エラー:', error)
+    } catch (err) {
+      console.error('エラー:', err)
       toast.error('グループの更新に失敗しました')
+    }
+  }
+
+  const handleStatusChange = async (leadId: string, statusId: string) => {
+    try {
+      const response = await fetch(`/api/leads/${leadId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ statusId }),
+      })
+
+      if (!response.ok) throw new Error('ステータスの更新に失敗しました')
+
+      const updatedLead = await response.json()
+      setLeads((prev) =>
+        prev.map((lead) => (lead.id === leadId ? updatedLead : lead))
+      )
+      toast.success('ステータスを更新しました')
+    } catch (err) {
+      console.error('エラー:', err)
+      toast.error('ステータスの更新に失敗しました')
     }
   }
 
@@ -247,44 +281,62 @@ export default function LeadsPage() {
       },
     },
     {
-      accessorKey: 'nickname',
+      accessorKey: 'email',
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            ニックネーム
+            メールアドレス
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
     },
     {
-      accessorKey: 'type',
+      accessorKey: 'phone',
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            タイプ
+            電話番号
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
     },
     {
-      accessorKey: 'district',
-      header: ({ column }) => {
+      accessorKey: 'status',
+      header: 'ステータス',
+      cell: ({ row }) => {
+        const lead = row.original
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          <Select
+            value={lead.statusId || ''}
+            onValueChange={(value) => handleStatusChange(lead.id, value)}
           >
-            地区
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="ステータスを選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {leadsStatuses.map((status) => (
+                <SelectItem key={status.id} value={status.id}>
+                  <div className="flex items-center gap-2">
+                    {status.color && (
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: status.color }}
+                      />
+                    )}
+                    <span>{status.name}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )
       },
     },
@@ -373,20 +425,6 @@ export default function LeadsPage() {
       },
     },
     {
-      accessorKey: 'email',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            メールアドレス
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
-    },
-    {
       accessorKey: 'referrer',
       header: ({ column }) => {
         return (
@@ -409,20 +447,6 @@ export default function LeadsPage() {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             評価
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
-    },
-    {
-      accessorKey: 'status',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            ステータス
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
@@ -465,11 +489,21 @@ export default function LeadsPage() {
       },
     },
     {
-      accessorKey: 'group',
+      accessorKey: 'groups',
       header: 'グループ',
       cell: ({ row }) => {
-        const group = row.original.group
-        return <div>{group?.name || '-'}</div>
+        const lead = row.original
+        return (
+          <MultiSelect
+            value={lead.groups?.map(g => g.groupId) || []}
+            onChange={(value) => handleGroupChange(lead.id, value)}
+            options={groups.map(group => ({
+              value: group.id,
+              label: group.name
+            }))}
+            placeholder="グループを選択"
+          />
+        )
       },
     },
     {
@@ -477,11 +511,7 @@ export default function LeadsPage() {
       enableHiding: false,
       cell: ({ row }) => {
         const lead = row.original
-        return <LeadActions 
-          leadId={lead.id} 
-          lead={lead} 
-          onSuccess={fetchLeads} 
-        />
+        return <LeadActions leadId={lead.id} lead={lead} onSuccess={fetchLeads} />
       },
     },
   ]
@@ -560,10 +590,15 @@ export default function LeadsPage() {
             </SelectContent>
           </Select>
           <Button
-            onClick={handleGroupChange}
+            onClick={() => handleGroupChange(table.getSelectedRowModel().rows[0].original.id, [tempSelectedGroup])}
             disabled={!tempSelectedGroup || table.getSelectedRowModel().rows.length === 0}
           >
             グループを設定
+            {table.getSelectedRowModel().rows.length > 0 && (
+              <span className="ml-2 bg-primary/10 px-2 py-0.5 rounded text-xs">
+                {table.getSelectedRowModel().rows.length}件
+              </span>
+            )}
           </Button>
         </div>
         <DropdownMenu>
@@ -674,6 +709,7 @@ export default function LeadsPage() {
           次へ
         </Button>
       </div>
+      
     </div>
   )
 } 
