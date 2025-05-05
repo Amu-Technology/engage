@@ -10,6 +10,7 @@ import {
   IconListDetails,
   IconUsers,
   IconUserCheck,
+  IconSettings,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -32,24 +33,58 @@ const navMain = [
     icon: IconDashboard,
   },
   {
-    title: "団体名簿",
-    url: "/dashboard/organizations",
-    icon: IconListDetails,
+    title: "名簿管理",
+    icon: IconUserCheck,
+    children: [
+      {
+        title: "有権者名簿",
+        url: "/dashboard/leads",
+        icon: IconUserCheck,
+      },
+      {
+        title: "団体名簿",
+        url: "/dashboard/organizations",
+        icon: IconListDetails,
+      },
+    ],
   },
   {
-    title: "有権者名簿",
-    url: "/dashboard/leads",
-    icon: IconUserCheck,
+    title: "実績管理",
+    icon: IconListDetails,
+    children: [
+      {
+        title: "実績記録",
+        url: "/dashboard/actions",
+        icon: IconListDetails,
+      },
+    ],
   },
   {
     title: "設定",
-    url: "/settings",
-    icon: IconFolder,
+    icon: IconSettings,
+    children: [
+      {
+        title: "リードグループ設定",
+        url: "/dashboard/settings/groups",
+        icon: IconFolder,
+      },
+      {
+        title: "メモタイプ設定",
+        url: "/dashboard/settings/memotypes",
+        icon: IconFolder,
+      },
+    ],
   },
   {
-    title: "ユーザー管理",
-    url: "/",
+    title: "システム管理",
     icon: IconUsers,
+    children: [
+      {
+        title: "ユーザー管理",
+        url: "/",
+        icon: IconUsers,
+      },
+    ],
   },
 ];
 
@@ -76,7 +111,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <Link href="/">
                 <IconCompass className="!size-5" />
-                <span className="text-base font-semibold">Qompass</span>
+                <span className="text-base font-semibold">Engage</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
