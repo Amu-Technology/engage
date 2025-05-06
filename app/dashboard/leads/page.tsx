@@ -665,58 +665,64 @@ export default function LeadsPage() {
         onPaymentStatusChange={handlePaymentStatusChange}
       />
 
-      <div className="flex items-center space-x-2">
-        <SearchBar onSearch={handleSearch} />
-        {Object.entries(searchParams).some(([, value]) => value) && (
-          <div className="text-sm text-muted-foreground">
-            検索条件: {Object.entries(searchParams)
-              .filter(([, value]) => value)
-              .map(([key, value]) => `${key}: ${value}`)
-              .join(', ')}
-          </div>
-        )}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              表示項目 <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Select
-          value={String(pagination.pageSize)}
-          onValueChange={(value) => setPagination({ ...pagination, pageSize: Number(value) })}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="表示件数" />
-          </SelectTrigger>
-          <SelectContent>
-            {[10, 50, 100, 200, 500].map((size) => (
-              <SelectItem key={size} value={String(size)}>
-                {size}件表示
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+
+<div className="flex flex-col space-y-4">
+  <div className="flex justify-between items-center">
+    <SearchBar onSearch={handleSearch} />
+    {Object.entries(searchParams).some(([, value]) => value) && (
+      <div className="text-sm text-muted-foreground">
+        検索条件: {Object.entries(searchParams)
+          .filter(([, value]) => value)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(', ')}
       </div>
+    )}
+  </div>
+
+  <div className="flex items-center space-x-2">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="ml-auto">
+          表示項目 <ChevronDown className="ml-2 h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {table
+          .getAllColumns()
+          .filter((column) => column.getCanHide())
+          .map((column) => {
+            return (
+              <DropdownMenuCheckboxItem
+                key={column.id}
+                className="capitalize"
+                checked={column.getIsVisible()}
+                onCheckedChange={(value) =>
+                  column.toggleVisibility(!!value)
+                }
+              >
+                {column.id}
+              </DropdownMenuCheckboxItem>
+            )
+          })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+    <Select
+      value={String(pagination.pageSize)}
+      onValueChange={(value) => setPagination({ ...pagination, pageSize: Number(value) })}
+    >
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="表示件数" />
+      </SelectTrigger>
+      <SelectContent>
+        {[10, 50, 100, 200, 500].map((size) => (
+          <SelectItem key={size} value={String(size)}>
+            {size}件表示
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
+</div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
