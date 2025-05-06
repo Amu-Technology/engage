@@ -43,6 +43,7 @@ import {
 import { LeadForm } from './components/LeadForm'
 import { LeadActions } from './components/LeadActions'
 import { MultiSelect } from "@/components/ui/multi-select"
+import { BulkActions } from './components/BulkActions'
 
 interface Lead {
   id: string
@@ -98,7 +99,6 @@ export default function LeadsPage() {
     pageSize: 10,
   })
   const [globalFilter, setGlobalFilter] = useState('')
-  const [tempSelectedGroup, setTempSelectedGroup] = useState<string>('')
   const [leadsStatuses, setLeadsStatuses] = useState<{ id: string; name: string; color: string | null }[]>([])
 
   const fetchLeads = async () => {
@@ -226,6 +226,26 @@ export default function LeadsPage() {
     } catch (err) {
       console.error('エラー:', err)
       toast.error('ステータスの更新に失敗しました')
+    }
+  }
+
+  const handlePaymentStatusChange = async (leadId: string, isPaid: boolean) => {
+    try {
+      const response = await fetch(`/api/leads/${leadId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPaid }),
+      })
+
+      if (!response.ok) throw new Error('入金状況の更新に失敗しました')
+
+      const updatedLead = await response.json()
+      setLeads((prev) =>
+        prev.map((lead) => (lead.id === leadId ? updatedLead : lead))
+      )
+    } catch (err) {
+      console.error('エラー:', err)
+      toast.error('入金状況の更新に失敗しました')
     }
   }
 
@@ -559,6 +579,16 @@ export default function LeadsPage() {
         <h1 className="text-2xl font-bold">リード一覧</h1>
         <LeadForm onSuccess={fetchLeads} />
       </div>
+
+      <BulkActions
+        selectedRows={table.getSelectedRowModel().rows}
+        groups={groups}
+        leadsStatuses={leadsStatuses}
+        onGroupChange={handleGroupChange}
+        onStatusChange={handleStatusChange}
+        onPaymentStatusChange={handlePaymentStatusChange}
+      />
+
       <div className="flex items-center space-x-2">
         <Input
           placeholder="検索..."
@@ -584,52 +614,6 @@ export default function LeadsPage() {
             {isLoading ? 'インポート中...' : 'インポート実行'}
           </Button>
         )}
-        <div className="flex items-center space-x-2">
-          <Select
-            value={tempSelectedGroup}
-            onValueChange={setTempSelectedGroup}
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="グループを選択" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">グループなし</SelectItem>
-              {groups.map((group) => (
-                <SelectItem key={group.id} value={group.id}>
-                  {group.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            onClick={async () => {
-              const selectedRows = table.getSelectedRowModel().rows
-              const selectedGroupIds = tempSelectedGroup === 'none' ? [] : [tempSelectedGroup]
-              
-              try {
-                // 選択された各行に対してグループを設定
-                await Promise.all(
-                  selectedRows.map(row => 
-                    handleGroupChange(row.original.id, selectedGroupIds)
-                  )
-                )
-                toast.success(`${selectedRows.length}件のリードのグループを更新しました`)
-                setTempSelectedGroup('')
-              } catch (error) {
-                console.error('エラー:', error)
-                toast.error('グループの更新に失敗しました')
-              }
-            }}
-            disabled={!tempSelectedGroup || table.getSelectedRowModel().rows.length === 0}
-          >
-            グループを設定
-            {table.getSelectedRowModel().rows.length > 0 && (
-              <span className="ml-2 bg-primary/10 px-2 py-0.5 rounded text-xs">
-                {table.getSelectedRowModel().rows.length}件
-              </span>
-            )}
-          </Button>
-        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">

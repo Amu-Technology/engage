@@ -61,8 +61,9 @@ export async function PATCH(
       return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
     }
 
+    const leadId = params.id
     const lead = await prisma.lead.findUnique({
-      where: { id: params.id },
+      where: { id: leadId },
       include: {
         leadsStatus: true
       }
@@ -76,21 +77,26 @@ export async function PATCH(
       return NextResponse.json({ error: '権限がありません' }, { status: 403 })
     }
 
-    const { statusId } = await request.json()
+    const { statusId, isPaid } = await request.json()
 
-    // トランザクションでステータス更新と履歴記録を行う
+    // トランザクションで更新と履歴記録を行う
     const updatedLead = await prisma.$transaction(async (tx) => {
-      // ステータスを更新
+      // 更新データの準備
+      const updateData: { statusId?: string; isPaid?: boolean } = {}
+      if (statusId !== undefined) updateData.statusId = statusId
+      if (isPaid !== undefined) updateData.isPaid = isPaid
+
+      // リードを更新
       const updated = await tx.lead.update({
-        where: { id: params.id },
-        data: { statusId },
+        where: { id: leadId },
+        data: updateData,
         include: {
           leadsStatus: true,
         },
       })
 
       // ステータスが変更された場合のみ履歴を記録
-      if (lead.statusId !== statusId) {
+      if (statusId !== undefined && lead.statusId !== statusId) {
         await tx.leadStatusHistory.create({
           data: {
             leadId: lead.id,

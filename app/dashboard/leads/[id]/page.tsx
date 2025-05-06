@@ -13,15 +13,28 @@ import { ActivityFilters } from './components/ActivityFilters'
 import { ActivityStats } from './components/ActivityStats'
 import { ActivityNotifications } from './components/ActivityNotifications'
 import { Activity } from '@/types/activity'
+import { LeadForm } from '@/app/dashboard/leads/components/LeadForm'
 
 interface Lead {
   id: string
   name: string
   nameReading: string | null
+  nickname: string | null
+  type: string
+  district: string | null
+  homePhone: string | null
+  mobilePhone: string | null
+  company: string | null
+  position: string | null
+  postalCode: string | null
+  address: string | null
   email: string | null
   phone: string | null
+  referrer: string | null
+  evaluation: number | null
   status: string
   statusId: string | null
+  isPaid: boolean
   leadsStatus: {
     id: string
     name: string
@@ -65,37 +78,37 @@ export default function LeadDetailPage() {
     }
   }, [params.id])
 
+  const fetchLeadData = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/leads/${params.id}`)
+      if (!response.ok) throw new Error('リード情報の取得に失敗しました')
+      const data = await response.json()
+      setLead(data)
+    } catch (error) {
+      console.error('エラー:', error)
+      toast.error('リード情報の取得に失敗しました')
+    }
+  }, [params.id])
+
+  const fetchStatusHistory = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/leads/${params.id}/status-history`)
+      if (!response.ok) throw new Error('ステータス履歴の取得に失敗しました')
+      const data = await response.json()
+      setStatusHistory(data)
+    } catch (error) {
+      console.error('エラー:', error)
+      toast.error('ステータス履歴の取得に失敗しました')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [params.id])
+
   useEffect(() => {
-    const fetchLeadData = async () => {
-      try {
-        const response = await fetch(`/api/leads/${params.id}`)
-        if (!response.ok) throw new Error('リード情報の取得に失敗しました')
-        const data = await response.json()
-        setLead(data)
-      } catch (error) {
-        console.error('エラー:', error)
-        toast.error('リード情報の取得に失敗しました')
-      }
-    }
-
-    const fetchStatusHistory = async () => {
-      try {
-        const response = await fetch(`/api/leads/${params.id}/status-history`)
-        if (!response.ok) throw new Error('ステータス履歴の取得に失敗しました')
-        const data = await response.json()
-        setStatusHistory(data)
-      } catch (error) {
-        console.error('エラー:', error)
-        toast.error('ステータス履歴の取得に失敗しました')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     fetchLeadData()
     fetchActivities()
     fetchStatusHistory()
-  }, [params.id, fetchActivities])
+  }, [params.id, fetchActivities, fetchLeadData, fetchStatusHistory])
 
   const filteredActivities = activities.filter((activity) => {
     const matchesSearch = activity.description
@@ -116,8 +129,9 @@ export default function LeadDetailPage() {
   return (
     <div className="container mx-auto p-4 space-y-4">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>リード情報</CardTitle>
+          <LeadForm lead={lead} onSuccess={fetchLeadData} />
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
