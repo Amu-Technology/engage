@@ -21,10 +21,12 @@ export async function PATCH(
       return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
     }
 
+    const leadId = await Promise.resolve(params.id)
+
     // リードの存在確認と権限チェック
     const lead = await prisma.lead.findFirst({
       where: {
-        id: params.id,
+        id: leadId,
         organizationId: user.organization.id
       }
     })
@@ -40,7 +42,7 @@ export async function PATCH(
       // 既存のグループ関連を削除
       await tx.leadGroup.deleteMany({
         where: {
-          leadId: params.id
+          leadId: leadId
         }
       })
 
@@ -48,7 +50,7 @@ export async function PATCH(
       if (groupIds && groupIds.length > 0) {
         await tx.leadGroup.createMany({
           data: groupIds.map((groupId: string) => ({
-            leadId: params.id,
+            leadId: leadId,
             groupId: groupId
           }))
         })
@@ -57,7 +59,7 @@ export async function PATCH(
 
     // 更新されたリードを取得
     const updatedLead = await prisma.lead.findUnique({
-      where: { id: params.id },
+      where: { id: leadId },
       include: {
         groups: {
           include: {

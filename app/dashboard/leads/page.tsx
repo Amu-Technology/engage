@@ -590,7 +590,24 @@ export default function LeadsPage() {
             </SelectContent>
           </Select>
           <Button
-            onClick={() => handleGroupChange(table.getSelectedRowModel().rows[0].original.id, [tempSelectedGroup])}
+            onClick={async () => {
+              const selectedRows = table.getSelectedRowModel().rows
+              const selectedGroupIds = tempSelectedGroup === 'none' ? [] : [tempSelectedGroup]
+              
+              try {
+                // 選択された各行に対してグループを設定
+                await Promise.all(
+                  selectedRows.map(row => 
+                    handleGroupChange(row.original.id, selectedGroupIds)
+                  )
+                )
+                toast.success(`${selectedRows.length}件のリードのグループを更新しました`)
+                setTempSelectedGroup('')
+              } catch (error) {
+                console.error('エラー:', error)
+                toast.error('グループの更新に失敗しました')
+              }
+            }}
             disabled={!tempSelectedGroup || table.getSelectedRowModel().rows.length === 0}
           >
             グループを設定
