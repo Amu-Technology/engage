@@ -123,10 +123,9 @@ export function OrganizationList() {
                       onClick={async () => {
                         if (!confirm('この組織を削除してもよろしいですか？')) return
                         try {
-                          const response = await fetch('/api/admin/organizations', {
+                          const response = await fetch(`/api/admin/organizations?id=${org.id}`, {
                             method: 'DELETE',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: org.id })
+                            headers: { 'Content-Type': 'application/json' }
                           })
                           if (!response.ok) throw new Error('組織の削除に失敗しました')
                           await fetchOrganizations()

@@ -14,7 +14,7 @@ export async function POST(
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: { organization: true },
+      include: { organization: true }
     })
 
     if (!user?.organization) {
@@ -23,6 +23,7 @@ export async function POST(
 
     const lead = await prisma.lead.findUnique({
       where: { id: params.id },
+      include: { organization: true }
     })
 
     if (!lead) {
@@ -33,20 +34,45 @@ export async function POST(
       return NextResponse.json({ error: '権限がありません' }, { status: 403 })
     }
 
-    const { type, description } = await request.json()
+    const { typeId, content } = await request.json()
+
+    const activityType = await prisma.activityType.findUnique({
+      where: { id: typeId }
+    })
+
+    if (!activityType) {
+      return NextResponse.json({ error: 'アクティビティタイプが見つかりません' }, { status: 404 })
+    }
 
     const activity = await prisma.leadActivity.create({
       data: {
-        leadId: lead.id,
-        type,
-        description,
-      },
+        description: content,
+        type: activityType.name,
+        typeId,
+        leadId: params.id
+      }
+    })
+
+    // リードの評価を更新
+    const currentLead = await prisma.lead.findUnique({
+      where: { id: params.id },
+      select: { evaluation: true }
+    })
+
+    await prisma.lead.update({
+      where: { id: params.id },
+      data: {
+        evaluation: (currentLead?.evaluation || 0) + activityType.point
+      }
     })
 
     return NextResponse.json(activity)
   } catch (err) {
     console.error('エラー:', err)
-    return NextResponse.json({ error: '内部サーバーエラー' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'アクティビティの作成に失敗しました' },
+      { status: 500 }
+    )
   }
 }
 

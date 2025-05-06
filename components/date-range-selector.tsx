@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
-import { subDays, subMonths } from 'date-fns'
+import { subDays, subMonths, subYears } from 'date-fns'
 
 interface DateRange {
   startDate: Date
@@ -50,6 +50,18 @@ export function DateRangeSelector({ onRangeChange }: DateRangeSelectorProps) {
           endDate: now
         }
         break
+      case '1year':
+        range = {
+          startDate: subYears(now, 1),
+          endDate: now
+        }
+        break
+      case '3years':
+        range = {
+          startDate: subYears(now, 3),
+          endDate: now
+        }
+        break
       default:
         return
     }
@@ -74,12 +86,14 @@ export function DateRangeSelector({ onRangeChange }: DateRangeSelectorProps) {
       <CardContent>
         <div className="space-y-4">
           <Tabs value={selectedTab} onValueChange={handleTabChange}>
-            <TabsList className="grid grid-cols-5">
+            <TabsList className="grid grid-cols-7">
               <TabsTrigger value="custom">カスタム</TabsTrigger>
               <TabsTrigger value="7days">7日間</TabsTrigger>
               <TabsTrigger value="30days">30日間</TabsTrigger>
               <TabsTrigger value="90days">90日間</TabsTrigger>
               <TabsTrigger value="6months">半年</TabsTrigger>
+              <TabsTrigger value="1year">1年</TabsTrigger>
+              <TabsTrigger value="3years">3年</TabsTrigger>
             </TabsList>
           </Tabs>
 

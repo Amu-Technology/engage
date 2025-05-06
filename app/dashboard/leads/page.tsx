@@ -1,6 +1,31 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+} from '@/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { ArrowUpDown, ChevronDown} from 'lucide-react'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -13,38 +38,13 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { toast } from 'sonner'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { BulkActions } from './components/BulkActions'
+import { CsvImport } from './components/CsvImport'
+import { SearchBar } from './components/SearchBar'
 import { LeadForm } from './components/LeadForm'
 import { LeadActions } from './components/LeadActions'
 import { MultiSelect } from "@/components/ui/multi-select"
-import { BulkActions } from './components/BulkActions'
-import { CsvImport } from './components/CsvImport'
+import { DataTablePagination } from './components/DataTablePagination'
 
 interface Lead {
   id: string
@@ -98,7 +98,14 @@ export default function LeadsPage() {
     pageIndex: 0,
     pageSize: 10,
   })
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [searchParams, setSearchParams] = useState({
+    name: '',
+    nameReading: '',
+    address: '',
+    district: '',
+    phone: ''
+  })
+  const [filteredTotal, setFilteredTotal] = useState(0)
   const [leadsStatuses, setLeadsStatuses] = useState<{ id: string; name: string; color: string | null }[]>([])
 
   const fetchLeads = async () => {
@@ -215,6 +222,52 @@ export default function LeadsPage() {
     }
   }
 
+  const handleSearch = (params: {
+    name: string
+    nameReading: string
+    address: string
+    district: string
+    phone: string
+  }) => {
+    setSearchParams(params)
+    
+    // 各カラムにフィルターを設定
+    const filters: ColumnFiltersState = []
+    
+    if (params.name) {
+      filters.push({
+        id: 'name',
+        value: params.name
+      })
+    }
+    if (params.nameReading) {
+      filters.push({
+        id: 'nameReading',
+        value: params.nameReading
+      })
+    }
+    if (params.address) {
+      filters.push({
+        id: 'address',
+        value: params.address
+      })
+    }
+    if (params.district) {
+      filters.push({
+        id: 'district',
+        value: params.district
+      })
+    }
+    if (params.phone) {
+      filters.push({
+        id: 'phone',
+        value: params.phone
+      })
+    }
+    
+    setColumnFilters(filters)
+  }
+
   const columns: ColumnDef<Lead>[] = [
     {
       id: 'select',
@@ -235,8 +288,6 @@ export default function LeadsPage() {
           aria-label="行を選択"
         />
       ),
-      enableSorting: false,
-      enableHiding: false,
     },
     {
       accessorKey: 'name',
@@ -263,6 +314,11 @@ export default function LeadsPage() {
           </Button>
         )
       },
+      filterFn: (row, id, value) => {
+        const val = row.getValue(id)
+        if (!val) return false
+        return val.toString().toLowerCase().includes(value.toLowerCase())
+      }
     },
     {
       accessorKey: 'nameReading',
@@ -277,20 +333,49 @@ export default function LeadsPage() {
           </Button>
         )
       },
+      filterFn: (row, id, value) => {
+        const val = row.getValue(id)
+        if (!val) return false
+        return val.toString().toLowerCase().includes(value.toLowerCase())
+      }
     },
     {
-      accessorKey: 'email',
+      accessorKey: 'address',
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            メールアドレス
+            住所
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
+      filterFn: (row, id, value) => {
+        const val = row.getValue(id)
+        if (!val) return false
+        return val.toString().toLowerCase().includes(value.toLowerCase())
+      }
+    },
+    {
+      accessorKey: 'district',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            地区
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      filterFn: (row, id, value) => {
+        const val = row.getValue(id)
+        if (!val) return false
+        return val.toString().toLowerCase().includes(value.toLowerCase())
+      }
     },
     {
       accessorKey: 'phone',
@@ -305,6 +390,11 @@ export default function LeadsPage() {
           </Button>
         )
       },
+      filterFn: (row, id, value) => {
+        const phone = row.getValue('homePhone')?.toString() || ''
+        const mobilePhone = row.getValue('mobilePhone')?.toString() || ''
+        return phone.includes(value) || mobilePhone.includes(value)
+      }
     },
     {
       accessorKey: 'status',
@@ -409,14 +499,14 @@ export default function LeadsPage() {
       },
     },
     {
-      accessorKey: 'address',
+      accessorKey: 'email',
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            住所
+            メールアドレス
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
@@ -533,7 +623,22 @@ export default function LeadsPage() {
       rowSelection,
       pagination,
     },
+    filterFns: {
+      customFilter: (row, columnId, filterValue) => {
+        const value = row.getValue(columnId)
+        if (!value) return false
+        return String(value).toLowerCase().includes(String(filterValue).toLowerCase())
+      }
+    }
   })
+
+  const filteredRows = table.getFilteredRowModel().rows
+  const filteredRowsLength = filteredRows.length
+
+  useEffect(() => {
+    // フィルター適用後の総数を更新
+    setFilteredTotal(filteredRowsLength)
+  }, [filteredRowsLength])
 
   if (isLoading) {
     return <div className="p-4">読み込み中...</div>
@@ -561,12 +666,15 @@ export default function LeadsPage() {
       />
 
       <div className="flex items-center space-x-2">
-        <Input
-          placeholder="検索..."
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="max-w-sm"
-        />
+        <SearchBar onSearch={handleSearch} />
+        {Object.entries(searchParams).some(([, value]) => value) && (
+          <div className="text-sm text-muted-foreground">
+            検索条件: {Object.entries(searchParams)
+              .filter(([, value]) => value)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(', ')}
+          </div>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -658,24 +766,8 @@ export default function LeadsPage() {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          前へ
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          次へ
-        </Button>
+        <DataTablePagination table={table} totalItems={filteredTotal || leads.length} />
       </div>
-      
     </div>
   )
 } 

@@ -200,6 +200,7 @@ model ActivityType {
   id            String   @id @default(cuid())
   name          String
   color         String?
+  point         Int      @default(0)
   organizationId Int
   organization  Organization @relation(fields: [organizationId], references: [id])
   activities    LeadActivity[]

@@ -35,10 +35,10 @@ async function main() {
 
   // デフォルトのステータスを作成
   const defaultStatuses = [
-    { name: '潜在顧客', color: '#FFA500' },
-    { name: '見込み顧客', color: '#4169E1' },
-    { name: '商談中', color: '#32CD32' },
-    { name: '成約', color: '#FF0000' },
+    { name: '潜在', color: '#FFA500' },
+    { name: '見込', color: '#4169E1' },
+    { name: 'アプローチ', color: '#32CD32' },
+    { name: '会員', color: '#FF0000' },
   ]
 
   for (const status of defaultStatuses) {

@@ -40,38 +40,45 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { organization: true }
-    })
-
-    if (!user?.organization) {
-      return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
-    }
-
-    const { name, color } = await request.json()
-
-    if (!name) {
-      return NextResponse.json(
-        { error: 'アクティビティタイプ名は必須です' },
-        { status: 400 }
-      )
-    }
+    const { name, color, point, organizationId } = await request.json()
 
     const activityType = await prisma.activityType.create({
       data: {
         name,
         color,
-        organizationId: user.organization.id
+        point,
+        organizationId
       }
     })
 
     return NextResponse.json(activityType)
-  } catch (err) {
-    console.error('エラー:', err)
-    return NextResponse.json(
-      { error: 'アクティビティタイプの作成に失敗しました' },
-      { status: 500 }
-    )
+  } catch (error) {
+    console.error('Error creating activity type:', error)
+    return new NextResponse('Internal Server Error', { status: 500 })
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const session = await auth()
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
+    }
+
+    const { id, name, color, point } = await request.json()
+
+    const activityType = await prisma.activityType.update({
+      where: { id },
+      data: {
+        name,
+        color,
+        point
+      }
+    })
+
+    return NextResponse.json(activityType)
+  } catch (error) {
+    console.error('Error updating activity type:', error)
+    return new NextResponse('Internal Server Error', { status: 500 })
   }
 } 
