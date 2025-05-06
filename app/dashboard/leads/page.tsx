@@ -44,6 +44,7 @@ import { LeadForm } from './components/LeadForm'
 import { LeadActions } from './components/LeadActions'
 import { MultiSelect } from "@/components/ui/multi-select"
 import { BulkActions } from './components/BulkActions'
+import { CsvImport } from './components/CsvImport'
 
 interface Lead {
   id: string
@@ -89,7 +90,6 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [groups, setGroups] = useState<Group[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [file, setFile] = useState<File | null>(null)
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -152,40 +152,6 @@ export default function LeadsPage() {
     fetchGroups()
     fetchLeadsStatuses()
   }, [])
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
-    }
-  }
-
-  const handleImport = async () => {
-    if (!file) {
-      toast.error('ファイルを選択してください')
-      return
-    }
-
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch('/api/leads/import', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        throw new Error('CSVのインポートに失敗しました')
-      }
-
-      toast.success('CSVのインポートが完了しました')
-      fetchLeads()
-      setFile(null)
-    } catch (error) {
-      console.error('エラー:', error)
-      toast.error('CSVのインポートに失敗しました')
-    }
-  }
 
   const handleGroupChange = async (leadId: string, groupIds: string[]) => {
     try {
@@ -577,7 +543,12 @@ export default function LeadsPage() {
     <div className="space-y-4 px-4 py-2">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">リード一覧</h1>
-        <LeadForm onSuccess={fetchLeads} />
+        <div className="flex items-center space-x-2">
+          <LeadForm onSuccess={fetchLeads} />
+          <CsvImport onSuccess={fetchLeads} />
+        </div>
+    
+
       </div>
 
       <BulkActions
@@ -596,24 +567,6 @@ export default function LeadsPage() {
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-sm"
         />
-        <input
-          type="file"
-          accept=".csv"
-          onChange={handleFileChange}
-          className="hidden"
-          id="csv-upload"
-        />
-        <Button
-          variant="outline"
-          onClick={() => document.getElementById('csv-upload')?.click()}
-        >
-          CSVインポート
-        </Button>
-        {file && (
-          <Button onClick={handleImport} disabled={isLoading}>
-            {isLoading ? 'インポート中...' : 'インポート実行'}
-          </Button>
-        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">

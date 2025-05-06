@@ -4,14 +4,13 @@ import { prisma } from '@/lib/prisma'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { leadId, type, content, scheduledAt } = body
+    const { leadId, type, content } = body
 
     const activity = await prisma.leadActivity.create({
       data: {
         leadId,
         type,
-        content,
-        scheduledAt: new Date(scheduledAt),
+        description: content
       },
     })
 
