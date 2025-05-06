@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format, subDays } from "date-fns";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { SectionCards } from "@/components/section-cards";
+import { ActivitySectionCards } from '@/components/analytics/ActivitySectionCards'
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { ActivityTypeChart } from '@/components/activity-type-chart'
 import { DateRangeSelector } from '@/components/date-range-selector'
@@ -32,7 +32,9 @@ interface Activity {
 
 interface ActivityStats {
   total: number;
+  previousTotal: number;
   byType: Record<string, number>;
+  previousByType: Record<string, number>;
   byLead: Array<{
     leadId: string;
     leadName: string;
@@ -54,8 +56,12 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange>({
     startDate: subDays(new Date(), 7),
-    endDate: new Date()
+    endDate: new Date(),
   });
+
+  const handleDateRangeChange = (range: DateRange) => {
+    setDateRange(range);
+  };
 
   const fetchActivities = async () => {
     try {
@@ -75,7 +81,17 @@ export default function AnalyticsPage() {
     fetchActivities();
   }, []);
 
-  const getStats = (): ActivityStats => {
+  const getStats = useCallback((): ActivityStats => {
+    // 前の期間の日付範囲を計算
+    const daysDiff = Math.ceil(
+      (dateRange.endDate.getTime() - dateRange.startDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const previousStartDate = new Date(dateRange.startDate);
+    previousStartDate.setDate(previousStartDate.getDate() - daysDiff);
+    const previousEndDate = new Date(dateRange.startDate);
+    previousEndDate.setDate(previousEndDate.getDate() - 1);
+
+    // 現在の期間のアクティビティ
     const filteredActivities = activities.filter(
       (activity) => {
         const activityDate = new Date(activity.createdAt);
@@ -83,8 +99,22 @@ export default function AnalyticsPage() {
       }
     );
 
-    // 種類別集計
+    // 前の期間のアクティビティ
+    const previousActivities = activities.filter(
+      (activity) => {
+        const activityDate = new Date(activity.createdAt);
+        return activityDate >= previousStartDate && activityDate <= previousEndDate;
+      }
+    );
+
+    // 種類別集計（現在の期間）
     const byType = filteredActivities.reduce((acc, activity) => {
+      acc[activity.type] = (acc[activity.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // 種類別集計（前の期間）
+    const previousByType = previousActivities.reduce((acc, activity) => {
       acc[activity.type] = (acc[activity.type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -106,9 +136,6 @@ export default function AnalyticsPage() {
     byLead.sort((a, b) => b.count - a.count);
 
     // 時系列データ
-    const daysDiff = Math.ceil(
-      (dateRange.endDate.getTime() - dateRange.startDate.getTime()) / (1000 * 60 * 60 * 24)
-    );
     const timeline = Array.from({ length: daysDiff + 1 }, (_, i) => {
       const date = new Date(dateRange.startDate);
       date.setDate(date.getDate() + i);
@@ -117,7 +144,6 @@ export default function AnalyticsPage() {
         (activity) => format(new Date(activity.createdAt), "yyyy-MM-dd") === dateStr
       );
 
-      // アクティビティタイプごとの集計
       const typeCounts = dayActivities.reduce((acc, activity) => {
         acc[`${activity.type}_count`] = (acc[`${activity.type}_count`] || 0) + 1;
         return acc;
@@ -132,13 +158,15 @@ export default function AnalyticsPage() {
 
     return {
       total: filteredActivities.length,
+      previousTotal: previousActivities.length,
       byType,
-      byLead: byLead.slice(0, 10), // 上位10件のみ表示
+      previousByType,
+      byLead: byLead.slice(0, 10),
       timeline,
     };
-  };
+  }, [activities, dateRange]);
 
-  const stats = getStats();
+  const stats = useMemo(() => getStats(), [getStats]);
 
   const activityTypeLabels: Record<string, string> = {
     meeting: "面談",
@@ -150,19 +178,6 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return <div className="p-4">読み込み中...</div>;
   }
-
-  const sectionCards = [
-    {
-      title: "総アクティビティ数",
-      value: stats.total,
-      description: "期間内の総アクティビティ数",
-    },
-    ...Object.entries(stats.byType).map(([type, count]) => ({
-      title: activityTypeLabels[type] || type,
-      value: count,
-      description: `${activityTypeLabels[type] || type}のアクティビティ数`,
-    })),
-  ];
 
   // アクティビティタイプのデータを準備
   const activityTypes = Object.entries(stats.byType).map(([id]) => ({
@@ -177,9 +192,9 @@ export default function AnalyticsPage() {
         <h1 className="text-2xl font-bold">アクティビティ分析</h1>
       </div>
 
-      <DateRangeSelector onRangeChange={setDateRange} />
+      <DateRangeSelector onRangeChange={handleDateRangeChange} />
 
-      <SectionCards cards={sectionCards} />
+      <ActivitySectionCards stats={stats} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ActivityTypeChart
