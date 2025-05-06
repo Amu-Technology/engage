@@ -9,11 +9,10 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from 'recharts'
 
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface ChartAreaInteractiveProps {
   data: Array<{
@@ -22,81 +21,100 @@ interface ChartAreaInteractiveProps {
   xAxisKey: string
   yAxisKey: string
   title: string
-  description: string
+  activityTypes?: {
+    id: string
+    name: string
+    color: string | null
+  }[]
 }
+
+const COLORS = [
+  '#8884d8',
+  '#82ca9d',
+  '#ffc658',
+  '#ff8042',
+  '#0088fe',
+  '#00c49f',
+  '#ffbb28',
+  '#ff8042',
+]
 
 export function ChartAreaInteractive({
   data,
   xAxisKey,
   yAxisKey,
   title,
-  description,
+  activityTypes,
 }: ChartAreaInteractiveProps) {
-  const isMobile = useIsMobile()
-  const [timeRange, setTimeRange] = React.useState("90d")
+  // アクティビティタイプごとのデータを生成
+  const chartData = React.useMemo(() => {
+    if (!activityTypes) return data
 
-  const timeRangeOptions = React.useMemo(() => {
-    if (isMobile) {
-      return [
-        { value: "7d", label: "7d" },
-        { value: "30d", label: "30d" },
-        { value: "90d", label: "90d" },
-      ]
-    }
-    return [
-      { value: "7d", label: "7 days" },
-      { value: "30d", label: "30 days" },
-      { value: "90d", label: "90 days" },
-    ]
-  }, [isMobile])
-
-  const filteredData = data.filter((item) => {
-    const date = new Date(item.date)
-    const referenceDate = new Date("2024-06-30")
-    const diffTime = Math.abs(referenceDate.getTime() - date.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays <= parseInt(timeRange)
-  })
+    return data.map(item => {
+      const result: Record<string, string | number> = { [xAxisKey]: item[xAxisKey] }
+      activityTypes.forEach((type) => {
+        result[type.name] = item[`${type.id}_count`] || 0
+      })
+      return result
+    })
+  }, [data, xAxisKey, activityTypes])
 
   return (
-    <Card className="@container/card">
+    <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-        <div className="flex items-center justify-end">
-          <ToggleGroup
-            type="single"
-            value={timeRange}
-            onValueChange={(value) => value && setTimeRange(value)}
-            variant="outline"
-            size="sm"
-          >
-            {timeRangeOptions.map((option) => (
-              <ToggleGroupItem
-                key={option.value}
-                value={option.value}
-                aria-label={option.label}
-              >
-                {option.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        </div>
       </CardHeader>
       <CardContent>
-        <div className="aspect-auto h-[250px] w-full">
+        <div className="aspect-auto h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={filteredData}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={xAxisKey} />
-              <YAxis />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey={yAxisKey}
-                stroke="#8884d8"
-                strokeWidth={2}
+              <XAxis 
+                dataKey={xAxisKey}
+                tick={{ fontSize: 12 }}
+                interval="preserveStartEnd"
               />
+              <YAxis 
+                tick={{ fontSize: 12 }}
+                allowDecimals={false}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  fontSize: '12px'
+                }}
+              />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                wrapperStyle={{
+                  paddingTop: '20px'
+                }}
+              />
+              {activityTypes ? (
+                activityTypes.map((type, index) => (
+                  <Line
+                    key={type.id}
+                    type="monotone"
+                    dataKey={type.name}
+                    stroke={type.color || COLORS[index % COLORS.length]}
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                ))
+              ) : (
+                <Line
+                  type="monotone"
+                  dataKey={yAxisKey}
+                  stroke="#8884d8"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
