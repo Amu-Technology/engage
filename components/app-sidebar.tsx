@@ -11,6 +11,7 @@ import {
   IconUsers,
   IconUserCheck,
   IconSettings,
+  IconChartBar,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -26,7 +27,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const navMain = [
+const baseNavItems = [
   {
     title: "ダッシュボード",
     url: "/dashboard",
@@ -57,6 +58,11 @@ const navMain = [
         url: "/dashboard/actions",
         icon: IconListDetails,
       },
+      {
+        title: "アクティビティ分析",
+        url: "/dashboard/analytics",
+        icon: IconChartBar,
+      },
     ],
   },
   {
@@ -73,20 +79,26 @@ const navMain = [
         url: "/dashboard/settings/memotypes",
         icon: IconFolder,
       },
-    ],
-  },
-  {
-    title: "システム管理",
-    icon: IconUsers,
-    children: [
       {
-        title: "ユーザー管理",
-        url: "/",
-        icon: IconUsers,
+        title: "アクティビティタイプ設定",
+        url: "/dashboard/settings/activity-types",
+        icon: IconFolder,
       },
     ],
   },
 ];
+
+const adminNavItem = {
+  title: "システム管理",
+  icon: IconUsers,
+  children: [
+    {
+      title: "ユーザー管理",
+      url: "/dashboard/admin",
+      icon: IconUsers,
+    },
+  ],
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession();
@@ -99,6 +111,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     role: user?.role || "",
     store: user?.store?.name || "",
   };
+
+  const navItems = React.useMemo(() => {
+    if (user?.role === "admin") {
+      return [...baseNavItems, adminNavItem];
+    }
+    return baseNavItems;
+  }, [user?.role]);
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -118,7 +137,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMain} />
+        <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData} />

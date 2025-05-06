@@ -50,6 +50,14 @@ export function UserForm({ isOpen, onClose, onSuccess, user }: UserFormProps) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    setName(user?.name || '')
+    setEmail(user?.email || '')
+    setRole(user?.role as 'admin' | 'store_manager' | 'store_staff' | null || null)
+    setOrgId(user?.org_id?.toString() || '0')
+    setGoogleId(user?.googleId || '')
+  }, [user])
+
+  useEffect(() => {
     async function fetchOrganizations() {
       try {
         const response = await fetch('/api/organizations')

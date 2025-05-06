@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { AdminDashboard } from '@/components/admin/AdminDashboard'
 
-export default async function HomePage() {
+export default async function AdminPage() {
   try {
     const session = await auth()
     if (!session?.user?.email) {
@@ -14,14 +15,18 @@ export default async function HomePage() {
     })
 
     if (!user) {
-      throw new Error('ユーザー情報が見つかりません。管理者にお問い合わせください。')
+      throw new Error('ユーザー情報が見つかりません')
     }
 
-    redirect('/dashboard')
+    if (user.role !== 'admin') {
+      throw new Error('このページにアクセスする権限がありません')
+    }
+
+    return <AdminDashboard />
   } catch (error) {
     if (error instanceof Error) {
       throw error
     }
     throw new Error('予期せぬエラーが発生しました')
   }
-}
+} 

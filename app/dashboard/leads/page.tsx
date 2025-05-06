@@ -265,6 +265,18 @@ export default function LeadsPage() {
           </Button>
         )
       },
+      cell: ({ row }) => {
+        const lead = row.original
+        return (
+          <Button
+            variant="link"
+            className="p-0 h-auto font-normal"
+            onClick={() => window.location.href = `/dashboard/leads/${lead.id}`}
+          >
+            {lead.name}
+          </Button>
+        )
+      },
     },
     {
       accessorKey: 'nameReading',

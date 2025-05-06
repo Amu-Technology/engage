@@ -8,6 +8,7 @@ export default auth(async (req) => {
   const isStaticFile = req.nextUrl.pathname.startsWith("/_next") || 
                       req.nextUrl.pathname.startsWith("/favicon.ico")
   const isDashboard = req.nextUrl.pathname.startsWith("/dashboard")
+  const isAdminPage = req.nextUrl.pathname.startsWith("/admin")
 
   if (isApiRoute || isStaticFile) {
     return NextResponse.next()
@@ -49,6 +50,30 @@ export default auth(async (req) => {
     } catch (error) {
       console.error("ユーザー情報の取得に失敗しました:", error)
       return NextResponse.redirect(new URL("/", req.nextUrl))
+    }
+  }
+
+  // 管理者ページへのアクセス制御
+  if (isAdminPage) {
+    try {
+      const session = await auth()
+      if (!session?.user?.email) {
+        return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
+      }
+
+      // APIエンドポイントを使用して管理者権限を確認
+      const response = await fetch(`${req.nextUrl.origin}/api/users/check-admin?email=${session.user.email}`)
+      if (!response.ok) {
+        return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
+      }
+
+      const { isAdmin } = await response.json()
+      if (!isAdmin) {
+        return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
+      }
+    } catch (error) {
+      console.error("管理者権限の確認に失敗しました:", error)
+      return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
     }
   }
 

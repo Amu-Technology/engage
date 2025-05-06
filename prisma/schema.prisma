@@ -34,6 +34,7 @@ model Organization {
   memoTypes MemoType[]
   groups    Group[]
   leadsStatuses LeadsStatus[]
+  activityTypes ActivityType[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -82,6 +83,8 @@ model Lead {
   tasks                Task[]
   events               Event[]
   memos                Memo[]
+  activities           LeadActivity[]
+  statusHistory        LeadStatusHistory[]
 }
 
 model FamilyMember {
@@ -108,6 +111,8 @@ model NotificationPreference {
   id          String   @id @default(cuid())
   leadId      String   @unique
   email       Boolean  @default(false)
+  emailAddress String?
+  intervalDays Int?    @default(7)
   line        Boolean  @default(false)
   facebook    Boolean  @default(false)
   instagram   Boolean  @default(false)
@@ -173,6 +178,8 @@ model LeadsStatus {
   organizationId Int
   organization  Organization @relation(fields: [organizationId], references: [id])
   leads         Lead[]
+  oldStatusHistory LeadStatusHistory[] @relation("OldStatus")
+  newStatusHistory LeadStatusHistory[] @relation("NewStatus")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -187,4 +194,38 @@ model LeadGroup {
   updatedAt DateTime @updatedAt
 
   @@unique([leadId, groupId])
+}
+
+model ActivityType {
+  id            String   @id @default(cuid())
+  name          String
+  color         String?
+  organizationId Int
+  organization  Organization @relation(fields: [organizationId], references: [id])
+  activities    LeadActivity[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model LeadActivity {
+  id            String   @id @default(cuid())
+  leadId        String
+  lead          Lead     @relation(fields: [leadId], references: [id])
+  type          String   // アクティビティの種類（メモ、タスク、イベントなど）
+  typeId        String?
+  activityType  ActivityType? @relation(fields: [typeId], references: [id])
+  description   String   // アクティビティの詳細
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model LeadStatusHistory {
+  id            String   @id @default(cuid())
+  leadId        String
+  lead          Lead     @relation(fields: [leadId], references: [id])
+  oldStatusId   String?
+  newStatusId   String
+  oldStatus     LeadsStatus? @relation("OldStatus", fields: [oldStatusId], references: [id])
+  newStatus     LeadsStatus  @relation("NewStatus", fields: [newStatusId], references: [id])
+  changedAt     DateTime @default(now())
 }

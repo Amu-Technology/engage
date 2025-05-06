@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -31,7 +30,6 @@ interface Lead {
 }
 
 export default function ActionsPage() {
-  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [leads, setLeads] = useState<Lead[]>([])
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
@@ -64,15 +62,6 @@ export default function ActionsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push('/dashboard/leads')}
-        >
-          ダッシュボードに戻る
-        </Button>
-      </div>
 
       <Card>
         <CardHeader>

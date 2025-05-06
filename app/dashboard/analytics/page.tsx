@@ -43,7 +43,7 @@ interface ActivityStats {
   }>
 }
 
-export default function DashboardPage() {
+export default function AnalyticsPage() {
   const [activities, setActivities] = useState<Activity[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week')
@@ -51,15 +51,12 @@ export default function DashboardPage() {
   const fetchActivities = async () => {
     try {
       const response = await fetch('/api/activities')
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'アクティビティの取得に失敗しました')
-      }
+      if (!response.ok) throw new Error('アクティビティの取得に失敗しました')
       const data = await response.json()
       setActivities(data)
     } catch (error) {
-      console.error('アクティビティ取得エラー:', error)
-      toast.error(error instanceof Error ? error.message : 'アクティビティの取得に失敗しました')
+      console.error('エラー:', error)
+      toast.error('アクティビティの取得に失敗しました')
     } finally {
       setIsLoading(false)
     }
@@ -200,4 +197,4 @@ export default function DashboardPage() {
       </div>
     </div>
   )
-}
+} 
