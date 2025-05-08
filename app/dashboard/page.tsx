@@ -218,10 +218,10 @@ export default function AnalyticsPage() {
     activityTypes.map(type => [type.id, type.name])
   );
 
-  const activityTypeLabelsByName: Record<string, string> = Object.fromEntries(
-    activityTypes.map(type => [type.name, type.name])
-  );
-  
+  const timelineLabels: Record<string, string> = {
+    count: "アクティビティ数",
+    ...activityTypeLabels
+  };
 
   if (isLoading) {
     return <div className="p-4">読み込み中...</div>;
@@ -255,7 +255,7 @@ export default function AnalyticsPage() {
         />
         <ChartAreaInteractive
           data={stats.timeline}
-          labels={activityTypeLabelsByName}
+          labels={timelineLabels}
           xAxisKey="date"
           yAxisKey="count"
           title="アクティビティ推移"
