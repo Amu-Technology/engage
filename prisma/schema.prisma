@@ -213,7 +213,7 @@ model LeadActivity {
   leadId        String
   lead          Lead     @relation(fields: [leadId], references: [id])
   type          String   // アクティビティの種類（メモ、タスク、イベントなど）
-  typeId        String?
+  typeId        String
   activityType  ActivityType? @relation(fields: [typeId], references: [id])
   description   String   // アクティビティの詳細
   createdAt     DateTime @default(now())

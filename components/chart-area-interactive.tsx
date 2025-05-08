@@ -21,6 +21,7 @@ interface ChartAreaInteractiveProps {
   xAxisKey: string
   yAxisKey: string
   title: string
+  labels?: Record<string, string>
   activityTypes?: {
     id: string
     name: string
@@ -44,6 +45,7 @@ export function ChartAreaInteractive({
   xAxisKey,
   yAxisKey,
   title,
+  labels,
   activityTypes,
 }: ChartAreaInteractiveProps) {
   // アクティビティタイプごとのデータを生成
@@ -92,6 +94,9 @@ export function ChartAreaInteractive({
                 wrapperStyle={{
                   paddingTop: '20px'
                 }}
+                formatter={(value) => labels?.[value] || value}
+                iconType="circle"
+                iconSize={10}
               />
               {activityTypes ? (
                 activityTypes.map((type, index) => (
@@ -99,6 +104,7 @@ export function ChartAreaInteractive({
                     key={type.id}
                     type="monotone"
                     dataKey={type.name}
+                    name={labels?.[type.id] || type.name}
                     stroke={type.color || COLORS[index % COLORS.length]}
                     strokeWidth={2}
                     dot={{ r: 4 }}
@@ -109,6 +115,7 @@ export function ChartAreaInteractive({
                 <Line
                   type="monotone"
                   dataKey={yAxisKey}
+                  name={labels?.[yAxisKey] || yAxisKey}
                   stroke="#8884d8"
                   strokeWidth={2}
                   dot={{ r: 4 }}

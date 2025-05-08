@@ -13,10 +13,16 @@ interface Group {
   updatedAt: string
 }
 
+interface ActivityType {
+  id: string
+  name: string
+}
+
 export function GroupActivityForm() {
   const [groups, setGroups] = useState<Group[]>([])
   const [selectedGroup, setSelectedGroup] = useState<string>('')
-  const [activityType, setActivityType] = useState('')
+  const [selectedActivityType, setSelectedActivityType] = useState<ActivityType | null>(null)
+  const [activityTypes, setActivityTypes] = useState<ActivityType[]>([])
   const [activityContent, setActivityContent] = useState('')
   const [scheduledAt, setScheduledAt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -39,9 +45,27 @@ export function GroupActivityForm() {
     fetchGroups()
   }, [])
 
+  useEffect(() => {
+    const fetchActivityTypes = async () => {
+      try {
+        const response = await fetch('/api/activity-types')
+        if (!response.ok) {
+          throw new Error('アクティビティタイプの取得に失敗しました')
+        }
+        const data = await response.json()
+        setActivityTypes(data)
+      } catch (error) {
+        console.error('エラー:', error)
+        toast.error('アクティビティタイプの取得に失敗しました')
+      }
+    }
+
+    fetchActivityTypes()
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedGroup || !activityType || !activityContent || !scheduledAt) {
+    if (!selectedGroup || !selectedActivityType || !activityContent || !scheduledAt) {
       toast.error('すべての項目を入力してください')
       return
     }
@@ -55,23 +79,25 @@ export function GroupActivityForm() {
         },
         body: JSON.stringify({
           groupId: selectedGroup,
-          type: activityType,
+          type: selectedActivityType.name,
+          typeId: selectedActivityType.id,
           content: activityContent,
           scheduledAt,
         }),
       })
 
       if (!response.ok) {
-        throw new Error('アクションの作成に失敗しました')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'アクションの作成に失敗しました')
       }
 
       toast.success('アクションを作成しました')
-      setActivityType('')
+      setSelectedActivityType(null)
       setActivityContent('')
       setScheduledAt('')
     } catch (error) {
       console.error('エラー:', error)
-      toast.error('アクションの作成に失敗しました')
+      toast.error(error instanceof Error ? error.message : 'アクションの作成に失敗しました')
     } finally {
       setIsLoading(false)
     }
@@ -93,15 +119,20 @@ export function GroupActivityForm() {
           </SelectContent>
         </Select>
 
-        <Select value={activityType} onValueChange={setActivityType}>
+        <Select value={selectedActivityType?.id || ''} onValueChange={(value) => {
+          const type = activityTypes.find(t => t.id === value)
+          setSelectedActivityType(type || null)
+        }}>
           <SelectTrigger>
             <SelectValue placeholder="アクションタイプを選択" />
           </SelectTrigger>
+
           <SelectContent>
-            <SelectItem value="call">電話</SelectItem>
-            <SelectItem value="email">メール</SelectItem>
-            <SelectItem value="meeting">面談</SelectItem>
-            <SelectItem value="other">その他</SelectItem>
+            {activityTypes.map((type) => (
+              <SelectItem key={type.id} value={type.id}>
+                {type.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 

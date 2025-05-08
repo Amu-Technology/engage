@@ -1,203 +1,275 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { format, subDays, subMonths } from 'date-fns'
-import { toast } from 'sonner'
-import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from 'recharts'
-import { SectionCards } from '@/components/section-cards'
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { format, subDays } from "date-fns";
+import { toast } from "sonner";
+import { ActivitySectionCards } from '@/components/analytics/ActivitySectionCards'
+import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { ActivityTypeChart } from '@/components/activity-type-chart'
+import { DateRangeSelector } from '@/components/date-range-selector'
+import { ActivityTypeTable } from '@/components/analytics/ActivityTypeTable'
+import { ActivityLeadsTable } from '@/components/analytics/ActivityLeadsTable'
 
 interface Activity {
-  id: string
-  leadId: string
-  type: string
-  description: string
-  createdAt: string
-  updatedAt: string
+  id: string;
+  leadId: string;
+  type: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
   lead: {
-    name: string
-  }
+    name: string;
+  };
+}
+
+interface ActivityType {
+  id: string;
+  name: string;
+  color: string | null;
+  point: number;
 }
 
 interface ActivityStats {
-  total: number
-  byType: Record<string, number>
-  byLead: Array<{
-    leadId: string
-    leadName: string
-    count: number
-  }>
-  timeline: Array<{
-    date: string
-    count: number
-  }>
+  total: number;
+  previousTotal: number;
+  byType: Record<string, number>;
+  previousByType: Record<string, number>;
+  byLead: Array<{ leadId: string; leadName: string; count: number; points: number }>;
+  timeline: Array<{ date: string; count: number }>;
+  leadsData: Array<{
+    id: string;
+    name: string;
+    activityCount: number;
+    previousActivityCount: number;
+    totalPoints: number;
+    previousTotalPoints: number;
+  }>;
 }
 
-export default function DashboardPage() {
-  const [activities, setActivities] = useState<Activity[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState<'week' | 'month'>('week')
+interface DateRange {
+  startDate: Date;
+  endDate: Date;
+}
+
+export default function AnalyticsPage() {
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activityTypes, setActivityTypes] = useState<ActivityType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<DateRange>({
+    startDate: subDays(new Date(), 7),
+    endDate: new Date(),
+  });
+
+  const handleDateRangeChange = (range: DateRange) => {
+    setDateRange(range);
+  };
 
   const fetchActivities = async () => {
     try {
-      const response = await fetch('/api/activities')
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'アクティビティの取得に失敗しました')
-      }
-      const data = await response.json()
-      setActivities(data)
+      const response = await fetch("/api/activities");
+      if (!response.ok) throw new Error("アクティビティの取得に失敗しました");
+      const data = await response.json();
+      setActivities(data);
     } catch (error) {
-      console.error('アクティビティ取得エラー:', error)
-      toast.error(error instanceof Error ? error.message : 'アクティビティの取得に失敗しました')
-    } finally {
-      setIsLoading(false)
+      console.error("エラー:", error);
+      toast.error("アクティビティの取得に失敗しました");
     }
-  }
+  };
+
+  const fetchActivityTypes = async () => {
+    try {
+      const response = await fetch("/api/activity-types");
+      if (!response.ok) throw new Error("アクティビティタイプの取得に失敗しました");
+      const data = await response.json();
+      setActivityTypes(data);
+    } catch (error) {
+      console.error("エラー:", error);
+      toast.error("アクティビティタイプの取得に失敗しました");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchActivities()
-  }, [])
+    fetchActivities();
+    fetchActivityTypes();
+  }, []);
 
-  const getStats = (): ActivityStats => {
-    const now = new Date()
-    const startDate = timeRange === 'week' 
-      ? subDays(now, 7)
-      : subMonths(now, 1)
+  const getStats = useCallback((): ActivityStats => {
+    // 前の期間の日付範囲を計算
+    const daysDiff = Math.ceil(
+      (dateRange.endDate.getTime() - dateRange.startDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const previousStartDate = new Date(dateRange.startDate);
+    previousStartDate.setDate(previousStartDate.getDate() - daysDiff);
+    const previousEndDate = new Date(dateRange.startDate);
+    previousEndDate.setDate(previousEndDate.getDate() - 1);
 
+    // 現在の期間のアクティビティ
     const filteredActivities = activities.filter(
-      activity => new Date(activity.createdAt) >= startDate
-    )
+      (activity) => {
+        const activityDate = new Date(activity.createdAt);
+        return activityDate >= dateRange.startDate && activityDate <= dateRange.endDate;
+      }
+    );
 
-    // 種類別集計
+    // 前の期間のアクティビティ
+    const previousActivities = activities.filter(
+      (activity) => {
+        const activityDate = new Date(activity.createdAt);
+        return activityDate >= previousStartDate && activityDate <= previousEndDate;
+      }
+    );
+
+    // 種類別集計（現在の期間）
     const byType = filteredActivities.reduce((acc, activity) => {
-      acc[activity.type] = (acc[activity.type] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
+      acc[activity.type] = (acc[activity.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
-    // リード別集計
+    // 種類別集計（前の期間）
+    const previousByType = previousActivities.reduce((acc, activity) => {
+      acc[activity.type] = (acc[activity.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // リード別集計（現在の期間）
     const byLead = filteredActivities.reduce((acc, activity) => {
-      const existing = acc.find(item => item.leadId === activity.leadId)
+      const existing = acc.find((item) => item.leadId === activity.leadId);
       if (existing) {
-        existing.count++
+        existing.count++;
+        existing.points += activityTypes.find(t => t.id === activity.type)?.point || 0;
       } else {
         acc.push({
           leadId: activity.leadId,
           leadName: activity.lead.name,
-          count: 1
-        })
+          count: 1,
+          points: activityTypes.find(t => t.id === activity.type)?.point || 0,
+        });
       }
-      return acc
-    }, [] as Array<{ leadId: string; leadName: string; count: number }>)
-    byLead.sort((a, b) => b.count - a.count)
+      return acc;
+    }, [] as Array<{ leadId: string; leadName: string; count: number; points: number }>);
+
+    // リード別集計（前の期間）
+    const previousByLead = previousActivities.reduce((acc, activity) => {
+      const existing = acc.find((item) => item.leadId === activity.leadId);
+      if (existing) {
+        existing.count++;
+        existing.points += activityTypes.find(t => t.id === activity.type)?.point || 0;
+      } else {
+        acc.push({
+          leadId: activity.leadId,
+          leadName: activity.lead.name,
+          count: 1,
+          points: activityTypes.find(t => t.id === activity.type)?.point || 0,
+        });
+      }
+      return acc;
+    }, [] as Array<{ leadId: string; leadName: string; count: number; points: number }>);
+
+    // リード別データの結合
+    const leadsData = byLead.map(lead => {
+      const previousLead = previousByLead.find(p => p.leadId === lead.leadId);
+      return {
+        id: lead.leadId,
+        name: lead.leadName,
+        activityCount: lead.count,
+        previousActivityCount: previousLead?.count || 0,
+        totalPoints: lead.points,
+        previousTotalPoints: previousLead?.points || 0,
+      };
+    }).sort((a, b) => b.activityCount - a.activityCount);
 
     // 時系列データ
-    const timeline = Array.from({ length: timeRange === 'week' ? 7 : 30 }, (_, i) => {
-      const date = timeRange === 'week'
-        ? subDays(now, 6 - i)
-        : subDays(now, 29 - i)
-      const count = filteredActivities.filter(
-        activity => format(new Date(activity.createdAt), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
-      ).length
+    const timeline = Array.from({ length: daysDiff + 1 }, (_, i) => {
+      const date = new Date(dateRange.startDate);
+      date.setDate(date.getDate() + i);
+      const dateStr = format(date, "yyyy-MM-dd");
+      const dayActivities = filteredActivities.filter(
+        (activity) => format(new Date(activity.createdAt), "yyyy-MM-dd") === dateStr
+      );
+
+      const typeCounts = dayActivities.reduce((acc, activity) => {
+        acc[`${activity.type}_count`] = (acc[`${activity.type}_count`] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
       return {
-        date: format(date, 'MM/dd'),
-        count
-      }
-    })
+        date: format(date, "MM/dd"),
+        count: dayActivities.length,
+        ...typeCounts,
+      };
+    });
 
     return {
       total: filteredActivities.length,
+      previousTotal: previousActivities.length,
       byType,
-      byLead: byLead.slice(0, 10), // 上位10件のみ表示
-      timeline
-    }
-  }
+      previousByType,
+      byLead: byLead.slice(0, 10),
+      timeline,
+      leadsData,
+    };
+  }, [activities, dateRange, activityTypes]);
 
-  const stats = getStats()
+  const stats = useMemo(() => getStats(), [getStats]);
 
-  const activityTypeLabels: Record<string, string> = {
-    meeting: '面談',
-    call: '電話',
-    email: 'メール',
-    other: 'その他',
-  }
+  const activityTypeLabels: Record<string, string> = Object.fromEntries(
+    activityTypes.map(type => [type.id, type.name])
+  );
+
+  const activityTypeLabelsByName: Record<string, string> = Object.fromEntries(
+    activityTypes.map(type => [type.name, type.name])
+  );
+  
 
   if (isLoading) {
-    return <div className="p-4">読み込み中...</div>
+    return <div className="p-4">読み込み中...</div>;
   }
 
-  const sectionCards = [
-    {
-      title: '総アクティビティ数',
-      value: stats.total,
-      description: '期間内の総アクティビティ数',
-    },
-    ...Object.entries(stats.byType).map(([type, count]) => ({
-      title: activityTypeLabels[type] || type,
-      value: count,
-      description: `${activityTypeLabels[type] || type}のアクティビティ数`,
-    })),
-  ]
+  // アクティビティタイプのデータを準備
+  const activityTypesData = Object.entries(stats.byType).map(([id]) => {
+    const type = activityTypes.find(t => t.id === id);
+    return {
+      id,
+      name: type?.name || '',
+      color: type?.color || null,
+      point: type?.point || 0
+    };
+  });
 
   return (
     <div className="container mx-auto p-4 space-y-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">アクティビティ分析</h1>
-        <Tabs value={timeRange} onValueChange={(value) => setTimeRange(value as 'week' | 'month')}>
-          <TabsList>
-            <TabsTrigger value="week">週間</TabsTrigger>
-            <TabsTrigger value="month">月間</TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
-      <SectionCards cards={sectionCards} />
+      <DateRangeSelector onRangeChange={handleDateRangeChange} />
+
+      <ActivitySectionCards stats={stats} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>アクティビティ推移</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartAreaInteractive
-              data={stats.timeline}
-              xAxisKey="date"
-              yAxisKey="count"
-              title="アクティビティ推移"
-              description="日別のアクティビティ数を表示"
-            />
-          </CardContent>
-        </Card>
+        <ActivityTypeChart
+          data={stats.byType}
+          labels={activityTypeLabels}
+        />
+        <ChartAreaInteractive
+          data={stats.timeline}
+          labels={activityTypeLabelsByName}
+          xAxisKey="date"
+          yAxisKey="count"
+          title="アクティビティ推移"
+          activityTypes={activityTypesData}
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>リード別アクティビティ数</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.byLead}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="leadName" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <ActivityTypeTable
+          byType={stats.byType}
+          previousByType={stats.previousByType}
+          activityTypes={activityTypesData}
+        />
+
+        <ActivityLeadsTable leads={stats.leadsData} />
       </div>
     </div>
-  )
+  );
 }
