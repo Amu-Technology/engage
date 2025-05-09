@@ -22,7 +22,6 @@ export function LoginForm({
 
   const handleSignIn = async () => {
     try {
-      console.log("Attempting to sign in with Google...")
       const result = await signIn("google", {
         callbackUrl,
         redirect: true,

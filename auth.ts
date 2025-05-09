@@ -13,9 +13,7 @@ export const { handlers, auth } = NextAuth({
     signIn: "/auth/signin",
   },
   callbacks: {
-    async redirect({ url, baseUrl }) {
-      console.log("[Auth] Redirect callback:", { url, baseUrl })
-      
+    async redirect({ url, baseUrl }) {      
       // 相対パスの場合はbaseUrlを追加
       if (url.startsWith("/")) {
         const redirectUrl = new URL(url, baseUrl)
@@ -38,14 +36,12 @@ export const { handlers, auth } = NextAuth({
       return baseUrl
     },
     async session({ session, token }) {
-      console.log("[Auth] Session callback:", { session, token })
       if (session.user && token.sub) {
         session.user.id = token.sub
       }
       return session
     },
     async jwt({ token, user, account }) {
-      console.log("[Auth] JWT callback:", { token, user, account })
       if (account && user) {
         token.accessToken = account.access_token
       }
@@ -57,7 +53,6 @@ export const { handlers, auth } = NextAuth({
       console.log("[Auth] Sign in success:", { user, account, profile })
     },
     async signOut() {
-      console.log("[Auth] Sign out event triggered")
     },
   },
 })

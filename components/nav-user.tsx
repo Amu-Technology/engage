@@ -49,8 +49,6 @@ export function NavUser({ user }: NavUserProps) {
     .join("")
     .toUpperCase();
 
-  console.log('NavUser received user:', user);
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>

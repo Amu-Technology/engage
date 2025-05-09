@@ -41,7 +41,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             throw new Error('ユーザー情報の取得に失敗しました')
           }
           const userData = await response.json()
-          console.log('Fetched user data:', userData)
           
           if (!userData.organization) {
             console.warn('Organization data is missing for user:', userData.email)

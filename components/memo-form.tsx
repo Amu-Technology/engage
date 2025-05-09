@@ -65,18 +65,14 @@ export function MemoForm({ leadId, onSuccess }: MemoFormProps) {
   useEffect(() => {
     const fetchMemoTypes = async () => {
       try {
-        console.log('メモタイプ取得開始')
         const response = await fetch('/api/memotypes')
-        console.log('APIレスポンス:', response)
         
         if (!response.ok) {
           const errorData = await response.json()
-          console.error('APIエラー:', errorData)
           throw new Error(errorData.error || 'メモタイプの取得に失敗しました')
         }
         
         const data = await response.json()
-        console.log('取得したメモタイプ:', data)
         setMemoTypes(data)
       } catch (error) {
         console.error('メモタイプ取得エラー:', error)

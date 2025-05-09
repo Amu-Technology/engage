@@ -44,12 +44,9 @@ export const POST = withAuth(async (request: Request, { user }: AuthenticatedUse
   try {
     
     const body = await request.json()
-    console.log('受信データ:', body)
-    console.log('ユーザー情報:', user)
     const { leadId, typeId, description, type, scheduledAt } = body
 
     if (!leadId || !typeId || !description || !type || !scheduledAt) {
-      console.log('バリデーションエラー:', { leadId, typeId, description, type, scheduledAt })
       return NextResponse.json(
         { error: '必要な情報が不足しています' },
         { status: 400 }
@@ -58,7 +55,6 @@ export const POST = withAuth(async (request: Request, { user }: AuthenticatedUse
 
     const hasAccess = await checkOrganizationAccess({ user }, leadId, 'lead')
     if (!hasAccess) {
-      console.log('アクセス権限エラー:', { leadId, organizationId: user.organization.id })
       return NextResponse.json({ error: 'リードが見つかりません' }, { status: 404 })
     }
 
@@ -71,17 +67,8 @@ export const POST = withAuth(async (request: Request, { user }: AuthenticatedUse
     })
 
     if (!activityType) {
-      console.log('アクティビティタイプ未検出:', { typeId, organizationId: user.organization.id })
       return NextResponse.json({ error: 'アクティビティタイプが見つかりません' }, { status: 404 })
     }
-
-    console.log('アクティビティ作成開始:', {
-      leadId,
-      typeId,
-      type,
-      organizationId: user.organization.id,
-      scheduledAt
-    })
 
     try {
       // アクティビティの作成
@@ -100,7 +87,6 @@ export const POST = withAuth(async (request: Request, { user }: AuthenticatedUse
         }
       })
 
-      console.log('アクティビティ作成成功:', activity)
 
       // リードの評価を更新
       await prisma.lead.update({

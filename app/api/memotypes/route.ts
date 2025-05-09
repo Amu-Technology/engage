@@ -4,12 +4,9 @@ import { auth } from '@/auth'
 
 export async function GET() {
   try {
-    console.log('メモタイプ取得開始')
     const session = await auth()
-    console.log('セッション:', session)
     
     if (!session?.user?.email) {
-      console.log('認証エラー: セッションまたはメールアドレスが存在しません')
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
@@ -17,17 +14,14 @@ export async function GET() {
       where: { email: session.user.email },
       include: { organization: true },
     })
-    console.log('ユーザー情報:', user)
 
     if (!user?.organization) {
-      console.log('組織エラー: ユーザーに組織が紐づいていません')
       return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
     }
 
     const memoTypes = await prisma.memoType.findMany({
       where: { organizationId: user.organization.id },
     })
-    console.log('取得したメモタイプ:', memoTypes)
 
     return NextResponse.json(memoTypes)
   } catch (error) {
