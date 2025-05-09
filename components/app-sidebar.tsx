@@ -109,7 +109,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     email: session?.user?.email || "",
     avatar: session?.user?.image || "",
     role: user?.role || "",
-    store: user?.store?.name || "",
+    organization: user?.organization,
   };
 
   const navItems = React.useMemo(() => {

@@ -73,12 +73,11 @@ async function main() {
 
   // デフォルトのアクティビティタイプを作成
   const defaultActivityTypes = [
-    { name: '電話', color: '#FFA500' },
-    { name: 'メール', color: '#4169E1' },
-    { name: '面談', color: '#32CD32' },
-    { name: '訪問', color: '#9370DB' },
-    { name: '提案', color: '#20B2AA' },
-    { name: 'その他', color: '#808080' },
+    { name: '電話', color: '#FFA500', point: 10 },
+    { name: 'メール', color: '#4169E1', point: 5 },
+    { name: '面談', color: '#32CD32', point: 30 },
+    { name: '訪問', color: '#9370DB', point: 20 },
+    { name: '提案', color: '#20B2AA', point: 10 },
   ]
 
   for (const type of defaultActivityTypes) {

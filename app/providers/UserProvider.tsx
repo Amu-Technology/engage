@@ -8,9 +8,8 @@ interface User {
   name: string | null
   email: string
   role: string | null
-  store_id: number | null
-  store?: {
-    id: number
+  organization?: {
+    id: string
     name: string
   }
 }
@@ -42,8 +41,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             throw new Error('ユーザー情報の取得に失敗しました')
           }
           const userData = await response.json()
+          console.log('Fetched user data:', userData)
+          
+          if (!userData.organization) {
+            console.warn('Organization data is missing for user:', userData.email)
+          }
+          
           setUser(userData)
         } catch (err) {
+          console.error('Error fetching user:', err)
           setError(err instanceof Error ? err : new Error('予期せぬエラーが発生しました'))
         } finally {
           setIsLoading(false)

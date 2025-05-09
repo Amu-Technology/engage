@@ -34,7 +34,10 @@ interface NavUserProps {
     email: string;
     avatar: string;
     role: string;
-    store: string;
+    organization?: {
+      id: string;
+      name: string;
+    };
   };
 }
 
@@ -45,6 +48,8 @@ export function NavUser({ user }: NavUserProps) {
     .map((n) => n[0])
     .join("")
     .toUpperCase();
+
+  console.log('NavUser received user:', user);
 
   return (
     <SidebarMenu>
@@ -63,7 +68,7 @@ export function NavUser({ user }: NavUserProps) {
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="text-muted-foreground truncate text-xs">
-                  {user.store}:{user.role}
+                  {user.organization && user.organization.name ? `${user.organization.name}:${user.role}` : `組織なし:${user.role}`}
                 </span>
                 <span className="truncate font-medium">{user.name}</span>
               </div>

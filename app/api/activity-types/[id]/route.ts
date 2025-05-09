@@ -33,7 +33,7 @@ export async function PUT(
       return NextResponse.json({ error: '権限がありません' }, { status: 403 })
     }
 
-    const { name, color } = await request.json()
+    const { name, color, point } = await request.json()
 
     if (!name) {
       return NextResponse.json(
@@ -42,9 +42,16 @@ export async function PUT(
       )
     }
 
+    if (!point || point < 1) {
+      return NextResponse.json(
+        { error: 'ポイントは1以上である必要があります' },
+        { status: 400 }
+      )
+    }
+
     const updatedActivityType = await prisma.activityType.update({
       where: { id: params.id },
-      data: { name, color }
+      data: { name, color, point }
     })
 
     return NextResponse.json(updatedActivityType)

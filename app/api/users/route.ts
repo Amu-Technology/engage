@@ -17,7 +17,12 @@ export async function GET(request: Request) {
         email,
       },
       include: {
-        organization: true,
+        organization: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     })
 
@@ -25,10 +30,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "ユーザーが見つかりません" }, { status: 404 })
     }
 
-    return NextResponse.json({
-      ...user,
+    // 必要な情報のみを返す
+    const response = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
       organization: user.organization,
-    })
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error("ユーザー情報の取得に失敗しました:", error)
     return NextResponse.json(
