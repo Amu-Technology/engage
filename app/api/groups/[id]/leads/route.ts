@@ -21,56 +21,58 @@ export async function PATCH(
       return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
     }
 
-    const leadId = await Promise.resolve(params.id)
+    const groupId = params.id
 
-    // リードの存在確認と権限チェック
-    const lead = await prisma.lead.findFirst({
+    // グループの存在確認と権限チェック
+    const group = await prisma.group.findFirst({
       where: {
-        id: leadId,
+        id: groupId,
         organizationId: user.organization.id
       }
     })
 
-    if (!lead) {
-      return NextResponse.json({ error: 'リードが見つかりません' }, { status: 404 })
+    if (!group) {
+      return NextResponse.json({ error: 'グループが見つかりません' }, { status: 404 })
     }
 
-    const { groupIds } = await request.json()
+    const { leadIds } = await request.json()
+
+    if (!Array.isArray(leadIds) || leadIds.length === 0) {
+      return NextResponse.json({ error: 'リードIDが必要です' }, { status: 400 })
+    }
 
     // トランザクションで一括処理
     await prisma.$transaction(async (tx) => {
-      // 既存のグループ関連を削除
+      // 既存のリード関連を削除
       await tx.leadGroup.deleteMany({
         where: {
-          leadId: leadId
+          groupId: groupId
         }
       })
 
-      // 新しいグループ関連を追加
-      if (groupIds && groupIds.length > 0) {
-        await tx.leadGroup.createMany({
-          data: groupIds.map((groupId: string) => ({
-            leadId: leadId,
-            groupId: groupId,
-            organizationId: user.organization!.id
-          }))
-        })
-      }
+      // 新しいリード関連を追加
+      await tx.leadGroup.createMany({
+        data: leadIds.map((leadId: string) => ({
+          leadId,
+          groupId,
+          organizationId: user.organization!.id
+        }))
+      })
     })
 
-    // 更新されたリードを取得
-    const updatedLead = await prisma.lead.findUnique({
-      where: { id: leadId },
+    // 更新されたグループを取得
+    const updatedGroup = await prisma.group.findUnique({
+      where: { id: groupId },
       include: {
-        groups: {
+        leads: {
           include: {
-            group: true
+            lead: true
           }
         }
       }
     })
 
-    return NextResponse.json(updatedLead)
+    return NextResponse.json(updatedGroup)
   } catch (err) {
     console.error('エラー:', err)
     return NextResponse.json({ error: '内部サーバーエラー' }, { status: 500 })

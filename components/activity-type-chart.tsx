@@ -13,12 +13,16 @@ import {
 
 interface ActivityTypeChartProps {
   data: Record<string, number>
-  labels: Record<string, string>
+  activityTypes: { id: string; name: string }[]
 }
 
-export function ActivityTypeChart({ data, labels }: ActivityTypeChartProps) {
+export function ActivityTypeChart({ data, activityTypes }: ActivityTypeChartProps) {
+  const typeLabels: Record<string, string> = Object.fromEntries(
+    activityTypes.map(type => [type.id, type.name])
+  )
+
   const chartData = Object.entries(data).map(([type, count]) => ({
-    type: labels[type] || type,
+    type: typeLabels[type] || type,
     count,
   }))
 

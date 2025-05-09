@@ -162,18 +162,36 @@ export default function LeadsPage() {
 
   const handleGroupChange = async (leadId: string, groupIds: string[]) => {
     try {
-      const response = await fetch(`/api/leads/${leadId}/groups`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ groupIds }),
-      })
+      // 単一のリードの場合
+      if (typeof leadId === 'string') {
+        const response = await fetch(`/api/leads/${leadId}/groups`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ groupIds }),
+        })
 
-      if (!response.ok) throw new Error('グループの更新に失敗しました')
+        if (!response.ok) throw new Error('グループの更新に失敗しました')
 
-      const updatedLead = await response.json()
-      setLeads((prev) =>
-        prev.map((lead) => (lead.id === leadId ? updatedLead : lead))
-      )
+        const updatedLead = await response.json()
+        setLeads((prev) =>
+          prev.map((lead) => (lead.id === leadId ? updatedLead : lead))
+        )
+      } 
+      // 複数のリードの場合
+      else if (Array.isArray(leadId)) {
+        const response = await fetch(`/api/groups/${groupIds[0]}/leads`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ leadIds: leadId }),
+        })
+
+        if (!response.ok) throw new Error('グループの更新に失敗しました')
+
+        // 更新されたリードの情報を取得
+        const updatedLeads = await fetch('/api/leads').then(res => res.json())
+        setLeads(updatedLeads)
+      }
+
       toast.success('グループを更新しました')
     } catch (err) {
       console.error('エラー:', err)
@@ -663,6 +681,11 @@ export default function LeadsPage() {
         onGroupChange={handleGroupChange}
         onStatusChange={handleStatusChange}
         onPaymentStatusChange={handlePaymentStatusChange}
+        onLeadsUpdate={(updatedLeads) => {
+          setLeads(updatedLeads)
+          // テーブルの状態も更新
+          table.setRowSelection({})
+        }}
       />
 
 

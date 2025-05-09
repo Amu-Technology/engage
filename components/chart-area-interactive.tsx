@@ -45,9 +45,13 @@ export function ChartAreaInteractive({
   xAxisKey,
   yAxisKey,
   title,
-  labels,
   activityTypes,
 }: ChartAreaInteractiveProps) {
+  // id→nameのマッピング
+  const typeLabels: Record<string, string> = activityTypes
+    ? Object.fromEntries(activityTypes.map(type => [type.id, type.name]))
+    : {};
+
   // アクティビティタイプごとのデータを生成
   const chartData = React.useMemo(() => {
     if (!activityTypes) return data;
@@ -90,10 +94,8 @@ export function ChartAreaInteractive({
               <Legend
                 verticalAlign="bottom"
                 height={36}
-                wrapperStyle={{
-                  paddingTop: "20px",
-                }}
-                formatter={(value) => labels?.[value] || value}
+                wrapperStyle={{ paddingTop: "20px" }}
+                formatter={(value) => typeLabels[value] || value}
                 iconType="circle"
                 iconSize={10}
               />
@@ -103,7 +105,7 @@ export function ChartAreaInteractive({
                     key={type.id}
                     type="monotone"
                     dataKey={type.id}
-                    name={labels?.[type.id] || type.id}
+                    name={typeLabels[type.id] || type.id}
                     stroke={type.color || COLORS[index % COLORS.length]}
                     strokeWidth={2}
                     dot={{ r: 4 }}
@@ -114,7 +116,7 @@ export function ChartAreaInteractive({
                 <Line
                   type="monotone"
                   dataKey={yAxisKey}
-                  name={labels?.[yAxisKey] || yAxisKey}
+                  name={typeLabels[yAxisKey] || yAxisKey}
                   stroke="#8884d8"
                   strokeWidth={2}
                   dot={{ r: 4 }}

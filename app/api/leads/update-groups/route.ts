@@ -46,7 +46,8 @@ export async function POST(request: Request) {
       await prisma.leadGroup.createMany({
         data: leadIds.map(leadId => ({
           leadId,
-          groupId
+          groupId,
+          organizationId: user.organization!.id
         })),
         skipDuplicates: true
       })

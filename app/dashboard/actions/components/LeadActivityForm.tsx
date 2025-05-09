@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -27,15 +27,40 @@ interface Lead {
   isPaid: boolean
 }
 
+interface ActivityType {
+  id: string
+  name: string
+  color: string | null
+  point: number
+}
 
 export function LeadActivityForm() {
   const [searchQuery, setSearchQuery] = useState('')
   const [leads, setLeads] = useState<Lead[]>([])
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
-  const [activityType, setActivityType] = useState('')
+  const [activityTypes, setActivityTypes] = useState<ActivityType[]>([])
+  const [selectedActivityType, setSelectedActivityType] = useState<ActivityType | null>(null)
   const [activityContent, setActivityContent] = useState('')
   const [scheduledAt, setScheduledAt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchActivityTypes = async () => {
+      try {
+        const response = await fetch('/api/activity-types')
+        if (!response.ok) {
+          throw new Error('アクティビティタイプの取得に失敗しました')
+        }
+        const data = await response.json()
+        setActivityTypes(data)
+      } catch (error) {
+        console.error('エラー:', error)
+        toast.error('アクティビティタイプの取得に失敗しました')
+      }
+    }
+
+    fetchActivityTypes()
+  }, [])
 
   const searchLeads = useCallback(async () => {
     if (!searchQuery.trim()) return
@@ -64,10 +89,20 @@ export function LeadActivityForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedLead || !activityType || !activityContent || !scheduledAt) {
+    if (!selectedLead || !selectedActivityType || !activityContent) {
       toast.error('すべての項目を入力してください')
       return
     }
+
+    const requestData = {
+      leadId: selectedLead.id,
+      typeId: selectedActivityType.id,
+      type: selectedActivityType.name,
+      description: activityContent,
+      scheduledAt: scheduledAt || undefined
+    }
+
+    console.log('送信データ:', requestData)
 
     try {
       const response = await fetch('/api/lead-activities', {
@@ -75,25 +110,30 @@ export function LeadActivityForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          leadId: selectedLead.id,
-          type: activityType,
-          content: activityContent,
-          scheduledAt,
-        }),
+        body: JSON.stringify(requestData),
       })
 
-      if (!response.ok) {
-        throw new Error('アクションの作成に失敗しました')
+      let errorMessage = 'アクションの作成に失敗しました'
+      try {
+        const data = await response.json()
+        if (!response.ok) {
+          errorMessage = data.error || errorMessage
+          throw new Error(errorMessage)
+        }
+        toast.success('アクションを作成しました')
+        setSelectedActivityType(null)
+        setActivityContent('')
+        setScheduledAt('')
+        setSelectedLead(null)
+        setSearchQuery('')
+        setLeads([])
+      } catch (parseError) {
+        console.error('レスポンスの解析エラー:', parseError)
+        throw new Error(errorMessage)
       }
-
-      toast.success('アクションを作成しました')
-      setActivityType('')
-      setActivityContent('')
-      setScheduledAt('')
     } catch (error) {
       console.error('エラー:', error)
-      toast.error('アクションの作成に失敗しました')
+      toast.error(error instanceof Error ? error.message : 'アクションの作成に失敗しました')
     }
   }
 
@@ -138,15 +178,22 @@ export function LeadActivityForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <h3 className="font-medium">{selectedLead.name}のアクション設定</h3>
-            <Select value={activityType} onValueChange={setActivityType}>
+            <Select
+              value={selectedActivityType?.id || ''}
+              onValueChange={(value) => {
+                const type = activityTypes.find(t => t.id === value)
+                setSelectedActivityType(type || null)
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="アクションタイプを選択" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="call">電話</SelectItem>
-                <SelectItem value="email">メール</SelectItem>
-                <SelectItem value="meeting">面談</SelectItem>
-                <SelectItem value="other">その他</SelectItem>
+                {activityTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Input

@@ -40,14 +40,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
-    const { name, color, point, organizationId } = await request.json()
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: { organization: true }
+    })
+
+    if (!user?.organization) {
+      return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
+    }
+
+    const { name, color, point } = await request.json()
 
     const activityType = await prisma.activityType.create({
       data: {
         name,
         color,
         point,
-        organizationId
+        organizationId: user.organization.id
       }
     })
 
@@ -65,7 +74,28 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
 
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: { organization: true }
+    })
+
+    if (!user?.organization) {
+      return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
+    }
+
     const { id, name, color, point } = await request.json()
+
+    // 更新対象のアクティビティタイプが同じ組織に属しているか確認
+    const existingActivityType = await prisma.activityType.findFirst({
+      where: {
+        id,
+        organizationId: user.organization.id
+      }
+    })
+
+    if (!existingActivityType) {
+      return NextResponse.json({ error: 'アクティビティタイプが見つかりません' }, { status: 404 })
+    }
 
     const activityType = await prisma.activityType.update({
       where: { id },

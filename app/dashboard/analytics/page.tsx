@@ -14,6 +14,7 @@ interface Activity {
   id: string;
   leadId: string;
   type: string;
+  typeId: string;
   description: string;
   createdAt: string;
   updatedAt: string;
@@ -113,6 +114,14 @@ export default function AnalyticsPage() {
       }
     );
 
+    console.log('Filtered Activities Details:', filteredActivities.map(activity => ({
+      id: activity.id,
+      leadId: activity.leadId,
+      leadName: activity.lead.name,
+      typeId: activity.typeId,
+      createdAt: activity.createdAt
+    })));
+
     // 前の期間のアクティビティ
     const previousActivities = activities.filter(
       (activity) => {
@@ -123,55 +132,65 @@ export default function AnalyticsPage() {
 
     // 種類別集計（現在の期間）
     const byType = filteredActivities.reduce((acc, activity) => {
-      acc[activity.type] = (acc[activity.type] || 0) + 1;
+      acc[activity.typeId] = (acc[activity.typeId] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
     // 種類別集計（前の期間）
     const previousByType = previousActivities.reduce((acc, activity) => {
-      acc[activity.type] = (acc[activity.type] || 0) + 1;
+      acc[activity.typeId] = (acc[activity.typeId] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
     // リード別集計（現在の期間）
     const byLead = filteredActivities.reduce((acc, activity) => {
-      const existing = acc.find((item) => item.leadId === activity.leadId);
-      if (existing) {
-        existing.count++;
-        existing.points += activityTypes.find(t => t.id === activity.type)?.point || 0;
-      } else {
-        acc.push({
+      // leadIdをキーとしてオブジェクトで管理
+      const key = `${activity.leadId}-${activity.lead.name}`; // リードIDと名前を組み合わせて一意のキーを作成
+      if (!acc[key]) {
+        acc[key] = {
           leadId: activity.leadId,
           leadName: activity.lead.name,
-          count: 1,
-          points: activityTypes.find(t => t.id === activity.type)?.point || 0,
-        });
+          count: 0,
+          points: 0,
+        };
       }
+      
+      acc[key].count += 1;
+      acc[key].points += activityTypes.find(t => t.id === activity.typeId)?.point || 0;
+      
       return acc;
-    }, [] as Array<{ leadId: string; leadName: string; count: number; points: number }>);
+    }, {} as Record<string, { leadId: string; leadName: string; count: number; points: number }>);
+
+    // オブジェクトを配列に変換
+    const byLeadArray = Object.values(byLead);
+
+    console.log('By Lead Array:', byLeadArray);
 
     // リード別集計（前の期間）
     const previousByLead = previousActivities.reduce((acc, activity) => {
-      const existing = acc.find((item) => item.leadId === activity.leadId);
-      if (existing) {
-        existing.count++;
-        existing.points += activityTypes.find(t => t.id === activity.type)?.point || 0;
-      } else {
-        acc.push({
+      const key = `${activity.leadId}-${activity.lead.name}`; // リードIDと名前を組み合わせて一意のキーを作成
+      if (!acc[key]) {
+        acc[key] = {
           leadId: activity.leadId,
           leadName: activity.lead.name,
-          count: 1,
-          points: activityTypes.find(t => t.id === activity.type)?.point || 0,
-        });
+          count: 0,
+          points: 0,
+        };
       }
+      
+      acc[key].count += 1;
+      acc[key].points += activityTypes.find(t => t.id === activity.typeId)?.point || 0;
+      
       return acc;
-    }, [] as Array<{ leadId: string; leadName: string; count: number; points: number }>);
+    }, {} as Record<string, { leadId: string; leadName: string; count: number; points: number }>);
+
+    const previousByLeadArray = Object.values(previousByLead);
 
     // リード別データの結合
-    const leadsData = byLead.map(lead => {
-      const previousLead = previousByLead.find(p => p.leadId === lead.leadId);
+    const leadsData = byLeadArray.map((lead, index) => {
+      const previousLead = previousByLeadArray.find(p => p.leadId === lead.leadId);
       return {
-        id: lead.leadId,
+        id: `${lead.leadId}-${index}`,
         name: lead.leadName,
         activityCount: lead.count,
         previousActivityCount: previousLead?.count || 0,
@@ -179,6 +198,8 @@ export default function AnalyticsPage() {
         previousTotalPoints: previousLead?.points || 0,
       };
     }).sort((a, b) => b.activityCount - a.activityCount);
+
+    console.log('Leads Data:', leadsData);
 
     // 時系列データ
     const timeline = Array.from({ length: daysDiff + 1 }, (_, i) => {
@@ -190,7 +211,7 @@ export default function AnalyticsPage() {
       );
 
       const typeCounts = dayActivities.reduce((acc, activity) => {
-        acc[`${activity.type}_count`] = (acc[`${activity.type}_count`] || 0) + 1;
+        acc[`${activity.typeId}_count`] = (acc[`${activity.typeId}_count`] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
@@ -206,7 +227,7 @@ export default function AnalyticsPage() {
       previousTotal: previousActivities.length,
       byType,
       previousByType,
-      byLead: byLead.slice(0, 10),
+      byLead: byLeadArray.slice(0, 10),
       timeline,
       leadsData,
     };
@@ -214,27 +235,18 @@ export default function AnalyticsPage() {
 
   const stats = useMemo(() => getStats(), [getStats]);
 
-  const activityTypeLabels: Record<string, string> = {
-    meeting: "面談",
-    call: "電話",
-    email: "メール",
-    other: "その他",
-  };
 
   if (isLoading) {
     return <div className="p-4">読み込み中...</div>;
   }
 
   // アクティビティタイプのデータを準備
-  const activityTypesData = Object.entries(stats.byType).map(([id]) => {
-    const type = activityTypes.find(t => t.id === id);
-    return {
-      id,
-      name: type?.name || activityTypeLabels[id] || id,
-      color: type?.color || null,
-      point: type?.point || 0
-    };
-  });
+  const activityTypesData = activityTypes.map(type => ({
+    id: type.id,
+    name: type.name,
+    color: type.color,
+    point: type.point
+  }));
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -244,12 +256,12 @@ export default function AnalyticsPage() {
 
       <DateRangeSelector onRangeChange={handleDateRangeChange} />
 
-      <ActivitySectionCards stats={stats} />
+      <ActivitySectionCards stats={stats} activityTypes={activityTypesData} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ActivityTypeChart
           data={stats.byType}
-          labels={activityTypeLabels}
+          activityTypes={activityTypesData}
         />
         <ChartAreaInteractive
           data={stats.timeline}

@@ -25,16 +25,35 @@ interface LeadsStatus {
 interface Lead {
   id: string
   name: string
-  // ... existing code ...
+  nameReading: string | null
+  nickname: string | null
+  type: string
+  district: string | null
+  homePhone: string | null
+  mobilePhone: string | null
+  company: string | null
+  position: string | null
+  postalCode: string | null
+  address: string | null
+  email: string | null
+  referrer: string | null
+  evaluation: number | null
+  status: string
+  isPaid: boolean
+  groups?: {
+    id: string
+    groupId: string
+  }[]
 }
 
 interface BulkActionsProps {
   selectedRows: { original: Lead }[]
   groups: Group[]
-  leadsStatuses: LeadsStatus[]
-  onGroupChange: (leadId: string, groupIds: string[]) => Promise<void>
-  onStatusChange: (leadId: string, statusId: string) => Promise<void>
-  onPaymentStatusChange: (leadId: string, isPaid: boolean) => Promise<void>
+  leadsStatuses: { id: string; name: string; color: string | null }[]
+  onGroupChange: (leadId: string, groupIds: string[]) => void
+  onStatusChange: (leadId: string, statusId: string) => void
+  onPaymentStatusChange: (leadId: string, isPaid: boolean) => void
+  onLeadsUpdate: (leads: Lead[]) => void
 }
 
 export function BulkActions({
@@ -44,26 +63,40 @@ export function BulkActions({
   onGroupChange,
   onStatusChange,
   onPaymentStatusChange,
+  onLeadsUpdate
 }: BulkActionsProps) {
-  const [selectedGroup, setSelectedGroup] = useState<string>('')
-  const [selectedStatus, setSelectedStatus] = useState<string>('')
+  const [selectedGroup, setSelectedGroup] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState('')
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleGroupChange = async () => {
-    if (!selectedGroup) return
+  const handleBulkGroupChange = async (groupId: string) => {
+    if (!groupId) return
     setIsLoading(true)
     try {
-      const selectedGroupIds = selectedGroup === 'none' ? [] : [selectedGroup]
-      await Promise.all(
-        selectedRows.map(row => 
-          onGroupChange(row.original.id, selectedGroupIds)
-        )
-      )
-      toast.success(`${selectedRows.length}件のリードのグループを更新しました`)
+      const selectedLeadIds = selectedRows.map(row => row.original.id)
+      
+      const response = await fetch(`/api/groups/${groupId}/leads`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadIds: selectedLeadIds }),
+      })
+
+      if (!response.ok) throw new Error('グループの更新に失敗しました')
+
+      // 更新されたリードの情報を取得して状態を更新
+      const updatedLeads = await fetch('/api/leads').then(res => res.json())
+      onLeadsUpdate(updatedLeads)
+      
+      // 各リードに対してグループ変更を通知
+      selectedLeadIds.forEach(leadId => {
+        onGroupChange(leadId, [groupId])
+      })
+      
+      toast.success(`${selectedLeadIds.length}件のリードのグループを更新しました`)
       setSelectedGroup('')
-    } catch (error) {
-      console.error('エラー:', error)
+    } catch (err) {
+      console.error('エラー:', err)
       toast.error('グループの更新に失敗しました')
     } finally {
       setIsLoading(false)
@@ -136,7 +169,7 @@ export function BulkActions({
           </SelectContent>
         </Select>
         <Button
-          onClick={handleGroupChange}
+          onClick={() => handleBulkGroupChange(selectedGroup)}
           disabled={!selectedGroup || isLoading}
           size="sm"
         >

@@ -18,23 +18,28 @@ interface ActivityStats {
   }>;
 }
 
-interface ActivitySectionCardsProps {
-  stats: ActivityStats;
+interface ActivityType {
+  id: string;
+  name: string;
+  color?: string | null;
+  point?: number;
 }
 
-const activityTypeLabels: Record<string, string> = {
-  meeting: "面談",
-  call: "電話",
-  email: "メール",
-  other: "その他",
-};
+interface ActivitySectionCardsProps {
+  stats: ActivityStats;
+  activityTypes: ActivityType[];
+}
 
 const calculateChange = (current: number, previous: number): number => {
   if (previous === 0) return current > 0 ? 100 : 0;
   return ((current - previous) / previous) * 100;
 };
 
-export function ActivitySectionCards({ stats }: ActivitySectionCardsProps) {
+export function ActivitySectionCards({ stats, activityTypes }: ActivitySectionCardsProps) {
+  const activityTypeLabels: Record<string, string> = Object.fromEntries(
+    activityTypes.map(type => [type.id, type.name])
+  );
+
   const sectionCards = [
     {
       title: "総アクティビティ",

@@ -73,4 +73,56 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const session = await auth()
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: { organization: true },
+    })
+
+    if (!user?.organization) {
+      return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
+    }
+
+    const { id, name } = await request.json()
+
+    if (!name) {
+      return NextResponse.json(
+        { error: 'グループ名が必要です' },
+        { status: 400 }
+      )
+    }
+
+    // 更新対象のグループが同じ組織に属しているか確認
+    const existingGroup = await prisma.group.findFirst({
+      where: {
+        id,
+        organizationId: user.organization.id
+      }
+    })
+
+    if (!existingGroup) {
+      return NextResponse.json({ error: 'グループが見つかりません' }, { status: 404 })
+    }
+
+    const group = await prisma.group.update({
+      where: { id },
+      data: { name }
+    })
+
+    return NextResponse.json(group)
+  } catch (error) {
+    console.error('エラー:', error)
+    return NextResponse.json(
+      { error: 'グループの更新に失敗しました' },
+      { status: 500 }
+    )
+  }
 } 

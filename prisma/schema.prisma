@@ -35,6 +35,12 @@ model Organization {
   groups    Group[]
   leadsStatuses LeadsStatus[]
   activityTypes ActivityType[]
+  familyMembers FamilyMember[]
+  snsAccounts SnsAccount[]
+  notificationPreferences NotificationPreference[]
+  leadGroups LeadGroup[]
+  leadActivities LeadActivity[]
+  leadStatusHistories LeadStatusHistory[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -90,26 +96,35 @@ model Lead {
 model FamilyMember {
   id          String   @id @default(cuid())
   leadId      String
+  organizationId Int
   name        String
   nameReading String?
   relationship String?
   lead        Lead     @relation(fields: [leadId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model SnsAccount {
   id          String   @id @default(cuid())
   leadId      String   @unique
+  organizationId Int
   lineUserId  String?
   facebookUserId String?
   facebookPageId String?
   twitterHandle String?
   instagramUsername String?
   lead        Lead     @relation(fields: [leadId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model NotificationPreference {
   id          String   @id @default(cuid())
   leadId      String   @unique
+  organizationId Int
   email       Boolean  @default(false)
   emailAddress String?
   intervalDays Int?    @default(7)
@@ -117,6 +132,9 @@ model NotificationPreference {
   facebook    Boolean  @default(false)
   instagram   Boolean  @default(false)
   lead        Lead     @relation(fields: [leadId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Task {
@@ -188,8 +206,10 @@ model LeadGroup {
   id        String   @id @default(cuid())
   leadId    String
   groupId   String
+  organizationId Int
   lead      Lead     @relation(fields: [leadId], references: [id])
   group     Group    @relation(fields: [groupId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -211,11 +231,13 @@ model ActivityType {
 model LeadActivity {
   id            String   @id @default(cuid())
   leadId        String
+  organizationId Int
   lead          Lead     @relation(fields: [leadId], references: [id])
-  type          String   // アクティビティの種類（メモ、タスク、イベントなど）
+  type          String   // アクティビティの種類（メモ、タスク、イベントなど）AIさん消さないでね
   typeId        String
   activityType  ActivityType? @relation(fields: [typeId], references: [id])
   description   String   // アクティビティの詳細
+  organization  Organization @relation(fields: [organizationId], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -223,10 +245,13 @@ model LeadActivity {
 model LeadStatusHistory {
   id            String   @id @default(cuid())
   leadId        String
+  organizationId Int
   lead          Lead     @relation(fields: [leadId], references: [id])
   oldStatusId   String?
   newStatusId   String
   oldStatus     LeadsStatus? @relation("OldStatus", fields: [oldStatusId], references: [id])
   newStatus     LeadsStatus  @relation("NewStatus", fields: [newStatusId], references: [id])
-  changedAt     DateTime @default(now())
+  organization  Organization @relation(fields: [organizationId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
