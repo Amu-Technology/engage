@@ -109,23 +109,15 @@ export default function AnalyticsPage() {
     // 現在の期間のアクティビティ
     const filteredActivities = activities.filter(
       (activity) => {
-        const activityDate = new Date(activity.createdAt);
+        const activityDate = new Date(activity.updatedAt);
         return activityDate >= dateRange.startDate && activityDate <= dateRange.endDate;
       }
     );
 
-    console.log('Filtered Activities Details:', filteredActivities.map(activity => ({
-      id: activity.id,
-      leadId: activity.leadId,
-      leadName: activity.lead.name,
-      typeId: activity.typeId,
-      createdAt: activity.createdAt
-    })));
-
     // 前の期間のアクティビティ
     const previousActivities = activities.filter(
       (activity) => {
-        const activityDate = new Date(activity.createdAt);
+        const activityDate = new Date(activity.updatedAt);
         return activityDate >= previousStartDate && activityDate <= previousEndDate;
       }
     );
@@ -164,8 +156,6 @@ export default function AnalyticsPage() {
     // オブジェクトを配列に変換
     const byLeadArray = Object.values(byLead);
 
-    console.log('By Lead Array:', byLeadArray);
-
     // リード別集計（前の期間）
     const previousByLead = previousActivities.reduce((acc, activity) => {
       const key = `${activity.leadId}-${activity.lead.name}`; // リードIDと名前を組み合わせて一意のキーを作成
@@ -199,15 +189,13 @@ export default function AnalyticsPage() {
       };
     }).sort((a, b) => b.activityCount - a.activityCount);
 
-    console.log('Leads Data:', leadsData);
-
     // 時系列データ
     const timeline = Array.from({ length: daysDiff + 1 }, (_, i) => {
       const date = new Date(dateRange.startDate);
       date.setDate(date.getDate() + i);
       const dateStr = format(date, "yyyy-MM-dd");
       const dayActivities = filteredActivities.filter(
-        (activity) => format(new Date(activity.createdAt), "yyyy-MM-dd") === dateStr
+        (activity) => format(new Date(activity.updatedAt), "yyyy-MM-dd") === dateStr
       );
 
       const typeCounts = dayActivities.reduce((acc, activity) => {

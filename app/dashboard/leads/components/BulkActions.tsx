@@ -16,12 +16,6 @@ interface Group {
   name: string
 }
 
-interface LeadsStatus {
-  id: string
-  name: string
-  color: string | null
-}
-
 interface Lead {
   id: string
   name: string
@@ -40,6 +34,17 @@ interface Lead {
   evaluation: number | null
   status: string
   isPaid: boolean
+  groupId: string | null
+  group: {
+    id: string
+    name: string
+  } | null
+  statusId: string | null
+  leadsStatus: {
+    id: string
+    name: string
+    color: string | null
+  } | null
   groups?: {
     id: string
     groupId: string

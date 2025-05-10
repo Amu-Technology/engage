@@ -681,8 +681,8 @@ export default function LeadsPage() {
         onGroupChange={handleGroupChange}
         onStatusChange={handleStatusChange}
         onPaymentStatusChange={handlePaymentStatusChange}
-        onLeadsUpdate={(updatedLeads) => {
-          setLeads(updatedLeads)
+        onLeadsUpdate={(updatedLeads: Lead[]) => {
+          setLeads(updatedLeads as Lead[])
           // テーブルの状態も更新
           table.setRowSelection({})
         }}

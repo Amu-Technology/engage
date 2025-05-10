@@ -1,7 +1,19 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Activity } from '@/types/activity'
+
+interface Activity {
+  id: string;
+  leadId: string;
+  type: string;
+  typeId: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  lead: {
+    name: string;
+  };
+}
 
 interface ActivityStatsProps {
   activities: Activity[]

@@ -1,24 +1,27 @@
-import { prisma } from '@/lib/prisma'
-import { NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth()
+    const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: { organization: true }
-    })
+      include: { organization: true },
+    });
 
     if (!user?.organization) {
-      return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
+      return NextResponse.json(
+        { error: "組織が見つかりません" },
+        { status: 404 }
+      );
     }
 
     const lead = await prisma.lead.findUnique({
@@ -26,19 +29,22 @@ export async function GET(
         id: params.id,
         organizationId: user.organization.id,
       },
-    })
+    });
 
     if (!lead) {
-      return NextResponse.json({ error: 'リードが見つかりません' }, { status: 404 })
+      return NextResponse.json(
+        { error: "リードが見つかりません" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(lead)
+    return NextResponse.json(lead);
   } catch (err) {
-    console.error('エラー:', err)
+    console.error("エラー:", err);
     return NextResponse.json(
-      { error: 'リードの取得に失敗しました' },
+      { error: "リードの取得に失敗しました" },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -47,44 +53,50 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth()
+    const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: { organization: true },
-    })
+    });
 
     if (!user?.organization) {
-      return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
+      return NextResponse.json(
+        { error: "組織が見つかりません" },
+        { status: 404 }
+      );
     }
 
-    const leadId = params.id
+    const leadId = params.id;
     const lead = await prisma.lead.findUnique({
-      where: { id: leadId },
+      where: { id: leadId, organizationId: user.organization.id },
       include: {
-        leadsStatus: true
-      }
-    })
+        leadsStatus: true,
+      },
+    });
 
     if (!lead) {
-      return NextResponse.json({ error: 'リードが見つかりません' }, { status: 404 })
+      return NextResponse.json(
+        { error: "リードが見つかりません" },
+        { status: 404 }
+      );
     }
 
     if (lead.organizationId !== user.organization.id) {
-      return NextResponse.json({ error: '権限がありません' }, { status: 403 })
+      return NextResponse.json({ error: "権限がありません" }, { status: 403 });
     }
 
-    const { statusId, isPaid } = await request.json()
+    const { statusId, isPaid } = await request.json();
 
     // トランザクションで更新と履歴記録を行う
     const updatedLead = await prisma.$transaction(async (tx) => {
       // 更新データの準備
-      const updateData: { statusId?: string; isPaid?: boolean } = {}
-      if (statusId !== undefined) updateData.statusId = statusId
-      if (isPaid !== undefined) updateData.isPaid = isPaid
+      const updateData: { statusId?: string; isPaid?: boolean } = {};
+      if (statusId !== undefined) updateData.statusId = statusId;
+      if (isPaid !== undefined) updateData.isPaid = isPaid;
 
       // リードを更新
       const updated = await tx.lead.update({
@@ -93,25 +105,30 @@ export async function PATCH(
         include: {
           leadsStatus: true,
         },
-      })
+      });
 
       // ステータスが変更された場合のみ履歴を記録
-      if (statusId !== undefined && lead.statusId !== statusId) {
+      if (
+        statusId !== undefined &&
+        lead.statusId !== statusId &&
+        user.organization
+      ) {
         await tx.leadStatusHistory.create({
           data: {
             leadId: lead.id,
             oldStatusId: lead.statusId,
             newStatusId: statusId,
+            organizationId: user.organization.id,
           },
-        })
+        });
       }
 
-      return updated
-    })
+      return updated;
+    });
 
-    return NextResponse.json(updatedLead)
+    return NextResponse.json(updatedLead);
   } catch (err) {
-    console.error('エラー:', err)
-    return NextResponse.json({ error: '内部サーバーエラー' }, { status: 500 })
+    console.error("エラー:", err);
+    return NextResponse.json({ error: "内部サーバーエラー" }, { status: 500 });
   }
-} 
+}

@@ -38,11 +38,24 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-interface Activity {
+interface ActivityType {
   id: string
-  type: string
-  description: string
-  createdAt: string
+  name: string
+  color: string | null
+  point: number
+}
+
+interface Activity {
+  id: string;
+  leadId: string;
+  type: string;
+  typeId: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  lead: {
+    name: string;
+  };
 }
 
 interface ActivityFormProps {
@@ -51,29 +64,39 @@ interface ActivityFormProps {
   activity?: Activity
 }
 
-const activityTypes = [
-  { value: 'meeting', label: '面談' },
-  { value: 'call', label: '電話' },
-  { value: 'email', label: 'メール' },
-  { value: 'other', label: 'その他' },
-]
-
 export function ActivityForm({ leadId, onSuccess, activity }: ActivityFormProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [activityTypes, setActivityTypes] = useState<ActivityType[]>([])
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: activity?.type || '',
+      type: activity?.typeId || '',
       description: activity?.description || '',
     },
   })
 
   useEffect(() => {
+    const fetchActivityTypes = async () => {
+      try {
+        const response = await fetch('/api/activity-types')
+        if (!response.ok) throw new Error('アクティビティタイプの取得に失敗しました')
+        const data = await response.json()
+        setActivityTypes(data)
+      } catch (error) {
+        console.error('エラー:', error)
+        toast.error('アクティビティタイプの取得に失敗しました')
+      }
+    }
+
+    fetchActivityTypes()
+  }, [])
+
+  useEffect(() => {
     if (activity) {
       form.reset({
-        type: activity.type,
+        type: activity.typeId,
         description: activity.description,
       })
     }
@@ -92,7 +115,11 @@ export function ActivityForm({ leadId, onSuccess, activity }: ActivityFormProps)
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          typeId: values.type,
+          type: activityTypes.find(t => t.id === values.type)?.name || '',
+          description: values.description,
+        }),
       })
 
       if (!response.ok) {
@@ -154,8 +181,16 @@ export function ActivityForm({ leadId, onSuccess, activity }: ActivityFormProps)
                     </FormControl>
                     <SelectContent>
                       {activityTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
+                        <SelectItem key={type.id} value={type.id}>
+                          <div className="flex items-center gap-2">
+                            {type.color && (
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: type.color }}
+                              />
+                            )}
+                            <span>{type.name}</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -4,8 +4,9 @@ import { auth } from '@/auth'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const leadId = context.params.id; // これでOK
   try {
     const session = await auth()
     if (!session?.user?.email) {
@@ -21,8 +22,6 @@ export async function GET(
       return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
     }
 
-    const leadId = await Promise.resolve(params.id)
-
     const lead = await prisma.lead.findUnique({
       where: { id: leadId },
     })
@@ -36,12 +35,15 @@ export async function GET(
     }
 
     const statusHistory = await prisma.leadStatusHistory.findMany({
-      where: { leadId },
+      where: { 
+        leadId,
+        organizationId: user.organization.id
+      },
       include: {
         oldStatus: true,
         newStatus: true,
       },
-      orderBy: { changedAt: 'desc' },
+      orderBy: { updatedAt: 'desc' },
     })
 
     return NextResponse.json(statusHistory)

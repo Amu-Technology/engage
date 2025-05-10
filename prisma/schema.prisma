@@ -11,247 +11,247 @@ datasource db {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  email         String       @unique
-  name          String?
-  image         String?
-  role          String?      @default("user")
-  org_id        Int?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  googleId      String?      @unique
-  organization  Organization? @relation(fields: [org_id], references: [id])
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String?
+  image        String?
+  role         String?       @default("user")
+  org_id       Int?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  googleId     String?       @unique
+  organization Organization? @relation(fields: [org_id], references: [id])
 }
 
 model Organization {
-  id        Int      @id @default(autoincrement())
-  name      String
-  users     User[]
-  leads     Lead[]
-  tasks     Task[]
-  events    Event[]
-  memos     Memo[]
-  memoTypes MemoType[]
-  groups    Group[]
-  leadsStatuses LeadsStatus[]
-  activityTypes ActivityType[]
-  familyMembers FamilyMember[]
-  snsAccounts SnsAccount[]
+  id                      Int                      @id @default(autoincrement())
+  name                    String
+  users                   User[]
+  leads                   Lead[]
+  tasks                   Task[]
+  events                  Event[]
+  memos                   Memo[]
+  memoTypes               MemoType[]
+  groups                  Group[]
+  leadsStatuses           LeadsStatus[]
+  activityTypes           ActivityType[]
+  familyMembers           FamilyMember[]
+  snsAccounts             SnsAccount[]
   notificationPreferences NotificationPreference[]
-  leadGroups LeadGroup[]
-  leadActivities LeadActivity[]
-  leadStatusHistories LeadStatusHistory[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  leadGroups              LeadGroup[]
+  leadActivities          LeadActivity[]
+  leadStatusHistories     LeadStatusHistory[]
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
 }
 
 model Group {
-  id            String   @id @default(cuid())
-  name          String
+  id             String       @id @default(cuid())
+  name           String
   organizationId Int
-  organization  Organization @relation(fields: [organizationId], references: [id])
-  leads         LeadGroup[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  leads          LeadGroup[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model Lead {
-  id                    String   @id @default(cuid())
-  organizationId        Int
-  groups               LeadGroup[]
-  type                 String   @default("individual")
-  name                 String
-  nameReading          String?
-  nickname             String?
-  district             String?
-  homePhone            String?
-  mobilePhone          String?
-  company              String?
-  position             String?
-  postalCode           String?
-  address              String?
-  phone                String?
-  email                String?
-  referrer             String?
-  evaluation           Int?     @default(0)
-  status               String   @default("potential")
-  statusId             String?
-  leadsStatus          LeadsStatus? @relation(fields: [statusId], references: [id])
-  profileImagePath     String?
-  businessCardPath     String?
-  isPaid               Boolean  @default(false)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  organization         Organization @relation(fields: [organizationId], references: [id])
-  familyMembers        FamilyMember[]
-  snsAccounts          SnsAccount?
+  id                      String                  @id @default(cuid())
+  organizationId          Int
+  groups                  LeadGroup[]
+  type                    String                  @default("individual")
+  name                    String
+  nameReading             String?
+  nickname                String?
+  district                String?
+  homePhone               String?
+  mobilePhone             String?
+  company                 String?
+  position                String?
+  postalCode              String?
+  address                 String?
+  phone                   String?
+  email                   String?
+  referrer                String?
+  evaluation              Int?                    @default(0)
+  status                  String                  @default("potential")
+  statusId                String?
+  leadsStatus             LeadsStatus?            @relation(fields: [statusId], references: [id])
+  profileImagePath        String?
+  businessCardPath        String?
+  isPaid                  Boolean                 @default(false)
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+  organization            Organization            @relation(fields: [organizationId], references: [id])
+  familyMembers           FamilyMember[]
+  snsAccounts             SnsAccount?
   notificationPreferences NotificationPreference?
-  tasks                Task[]
-  events               Event[]
-  memos                Memo[]
-  activities           LeadActivity[]
-  statusHistory        LeadStatusHistory[]
+  tasks                   Task[]
+  events                  Event[]
+  memos                   Memo[]
+  activities              LeadActivity[]
+  statusHistory           LeadStatusHistory[]
 }
 
 model FamilyMember {
-  id          String   @id @default(cuid())
-  leadId      String
+  id             String       @id @default(cuid())
+  leadId         String
   organizationId Int
-  name        String
-  nameReading String?
-  relationship String?
-  lead        Lead     @relation(fields: [leadId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  name           String
+  nameReading    String?
+  relationship   String?
+  lead           Lead         @relation(fields: [leadId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model SnsAccount {
-  id          String   @id @default(cuid())
-  leadId      String   @unique
-  organizationId Int
-  lineUserId  String?
-  facebookUserId String?
-  facebookPageId String?
-  twitterHandle String?
+  id                String       @id @default(cuid())
+  leadId            String       @unique
+  organizationId    Int
+  lineUserId        String?
+  facebookUserId    String?
+  facebookPageId    String?
+  twitterHandle     String?
   instagramUsername String?
-  lead        Lead     @relation(fields: [leadId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  lead              Lead         @relation(fields: [leadId], references: [id])
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 }
 
 model NotificationPreference {
-  id          String   @id @default(cuid())
-  leadId      String   @unique
+  id             String       @id @default(cuid())
+  leadId         String       @unique
   organizationId Int
-  email       Boolean  @default(false)
-  emailAddress String?
-  intervalDays Int?    @default(7)
-  line        Boolean  @default(false)
-  facebook    Boolean  @default(false)
-  instagram   Boolean  @default(false)
-  lead        Lead     @relation(fields: [leadId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  email          Boolean      @default(false)
+  emailAddress   String?
+  intervalDays   Int?         @default(7)
+  line           Boolean      @default(false)
+  facebook       Boolean      @default(false)
+  instagram      Boolean      @default(false)
+  lead           Lead         @relation(fields: [leadId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model Task {
-  id            String   @id @default(cuid())
+  id             String       @id @default(cuid())
   organizationId Int
-  type          String
-  assignee      String
-  dueDate       DateTime
-  status        String   @default("pending")
-  relatedLeadId String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  organization  Organization @relation(fields: [organizationId], references: [id])
-  lead          Lead?    @relation(fields: [relatedLeadId], references: [id])
+  type           String
+  assignee       String
+  dueDate        DateTime
+  status         String       @default("pending")
+  relatedLeadId  String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  lead           Lead?        @relation(fields: [relatedLeadId], references: [id])
 }
 
 model Event {
-  id            String   @id @default(cuid())
+  id             String       @id @default(cuid())
   organizationId Int
-  title         String
-  startDate     DateTime
-  endDate       DateTime
-  location      String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  organization  Organization @relation(fields: [organizationId], references: [id])
-  leads         Lead[]
+  title          String
+  startDate      DateTime
+  endDate        DateTime
+  location       String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  leads          Lead[]
 }
 
 model Memo {
-  id            String   @id @default(cuid())
-  leadId        String
+  id             String       @id @default(cuid())
+  leadId         String
   organizationId Int
-  type          String
-  timestamp     DateTime
-  note          String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  lead          Lead     @relation(fields: [leadId], references: [id])
-  organization  Organization @relation(fields: [organizationId], references: [id])
-  memoType      MemoType?   @relation(fields: [type], references: [id])
+  type           String
+  timestamp      DateTime
+  note           String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  lead           Lead         @relation(fields: [leadId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  memoType       MemoType?    @relation(fields: [type], references: [id])
 }
 
 model MemoType {
-  id            String   @id @default(cuid())
-  name          String
-  color         String?
+  id             String       @id @default(cuid())
+  name           String
+  color          String?
   organizationId Int
-  organization  Organization @relation(fields: [organizationId], references: [id])
-  memos         Memo[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  memos          Memo[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model LeadsStatus {
-  id            String   @id @default(cuid())
-  name          String
-  color         String?
-  organizationId Int
-  organization  Organization @relation(fields: [organizationId], references: [id])
-  leads         Lead[]
+  id               String              @id @default(cuid())
+  name             String
+  color            String?
+  organizationId   Int
+  organization     Organization        @relation(fields: [organizationId], references: [id])
+  leads            Lead[]
   oldStatusHistory LeadStatusHistory[] @relation("OldStatus")
   newStatusHistory LeadStatusHistory[] @relation("NewStatus")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 }
 
 model LeadGroup {
-  id        String   @id @default(cuid())
-  leadId    String
-  groupId   String
+  id             String       @id @default(cuid())
+  leadId         String
+  groupId        String
   organizationId Int
-  lead      Lead     @relation(fields: [leadId], references: [id])
-  group     Group    @relation(fields: [groupId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  lead           Lead         @relation(fields: [leadId], references: [id])
+  group          Group        @relation(fields: [groupId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@unique([leadId, groupId])
 }
 
 model ActivityType {
-  id            String   @id @default(cuid())
-  name          String
-  color         String?
-  point         Int      @default(0)
+  id             String         @id @default(cuid())
+  name           String
+  color          String?
+  point          Int            @default(0)
   organizationId Int
-  organization  Organization @relation(fields: [organizationId], references: [id])
-  activities    LeadActivity[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  activities     LeadActivity[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 }
 
 model LeadActivity {
-  id            String   @id @default(cuid())
-  leadId        String
+  id             String        @id @default(cuid())
+  leadId         String
   organizationId Int
-  lead          Lead     @relation(fields: [leadId], references: [id])
-  type          String   // アクティビティの種類（メモ、タスク、イベントなど）AIさん消さないでね
-  typeId        String
-  activityType  ActivityType? @relation(fields: [typeId], references: [id])
-  description   String   // アクティビティの詳細
-  organization  Organization @relation(fields: [organizationId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  lead           Lead          @relation(fields: [leadId], references: [id])
+  type           String // アクティビティの種類（メモ、タスク、イベントなど）AIさん消さないでね
+  typeId         String
+  activityType   ActivityType? @relation(fields: [typeId], references: [id])
+  description    String // アクティビティの詳細
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 model LeadStatusHistory {
-  id            String   @id @default(cuid())
-  leadId        String
+  id             String       @id @default(cuid())
+  leadId         String
   organizationId Int
-  lead          Lead     @relation(fields: [leadId], references: [id])
-  oldStatusId   String?
-  newStatusId   String
-  oldStatus     LeadsStatus? @relation("OldStatus", fields: [oldStatusId], references: [id])
-  newStatus     LeadsStatus  @relation("NewStatus", fields: [newStatusId], references: [id])
-  organization  Organization @relation(fields: [organizationId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  lead           Lead         @relation(fields: [leadId], references: [id])
+  oldStatusId    String?
+  newStatusId    String
+  oldStatus      LeadsStatus? @relation("OldStatus", fields: [oldStatusId], references: [id])
+  newStatus      LeadsStatus  @relation("NewStatus", fields: [newStatusId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }

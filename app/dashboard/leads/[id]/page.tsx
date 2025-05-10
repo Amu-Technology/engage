@@ -12,7 +12,6 @@ import { ActivityActions } from './components/ActivityActions'
 import { ActivityFilters } from './components/ActivityFilters'
 import { ActivityStats } from './components/ActivityStats'
 import { ActivityNotifications } from './components/ActivityNotifications'
-import { Activity } from '@/types/activity'
 import { LeadForm } from '@/app/dashboard/leads/components/LeadForm'
 
 interface Lead {
@@ -29,17 +28,25 @@ interface Lead {
   postalCode: string | null
   address: string | null
   email: string | null
-  phone: string | null
   referrer: string | null
   evaluation: number | null
   status: string
-  statusId: string | null
   isPaid: boolean
+  groupId: string | null
+  group: {
+    id: string
+    name: string
+  } | null
+  statusId: string | null
   leadsStatus: {
     id: string
     name: string
     color: string | null
   } | null
+  groups?: {
+    id: string
+    groupId: string
+  }[]
 }
 
 interface StatusHistory {
@@ -54,7 +61,20 @@ interface StatusHistory {
     name: string
     color: string | null
   }
-  changedAt: string
+  createdAt: string
+}
+
+interface Activity {
+  id: string;
+  leadId: string;
+  type: string;
+  typeId: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  lead: {
+    name: string;
+  };
 }
 
 export default function LeadDetailPage() {
@@ -69,7 +89,7 @@ export default function LeadDetailPage() {
   const fetchActivities = useCallback(async () => {
     try {
       const response = await fetch(`/api/leads/${params.id}/activities`)
-      if (!response.ok) throw new Error('アクティビティの取得に失敗しました')
+      if (!response.ok) throw new Error(response.statusText + ' ' + response.json + 'アクティビティエラー')
       const data = await response.json()
       setActivities(data)
     } catch (error) {
@@ -77,6 +97,8 @@ export default function LeadDetailPage() {
       toast.error('アクティビティの取得に失敗しました')
     }
   }, [params.id])
+
+  console.log('activities', activities);
 
   const fetchLeadData = useCallback(async () => {
     try {
@@ -149,7 +171,7 @@ export default function LeadDetailPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">電話番号</p>
-              <p className="font-medium">{lead.phone || '-'}</p>
+              <p className="font-medium">{lead.mobilePhone || '-'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">ステータス</p>
@@ -207,9 +229,9 @@ export default function LeadDetailPage() {
                         />
                       </div>
                       <p className="text-sm text-gray-500">
-                        {format(new Date(activity.createdAt), 'yyyy年MM月dd日 HH:mm', {
+                        {activity.createdAt ? format(new Date(activity.createdAt), 'yyyy年MM月dd日 HH:mm', {
                           locale: ja,
-                        })}
+                        }) : '-'}
                       </p>
                     </div>
                     <p className="mt-1 text-gray-600">{activity.description}</p>
@@ -252,9 +274,9 @@ export default function LeadDetailPage() {
                         <span>{history.newStatus.name}</span>
                       </div>
                       <p className="text-sm text-gray-500">
-                        {format(new Date(history.changedAt), 'yyyy年MM月dd日 HH:mm', {
+                        {history.createdAt ? format(new Date(history.createdAt), 'yyyy年MM月dd日 HH:mm', {
                           locale: ja,
-                        })}
+                        }) : '-'}
                       </p>
                     </div>
                   </div>

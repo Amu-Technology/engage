@@ -243,24 +243,31 @@ export function ActivityTypeManager() {
                 />
               )}
               <span>{type.name}</span>
-              <span>{type.point}</span>
+              <span>[{type.point}pt]</span>
+              {type.id.includes('default') && (
+                <span className="text-xs text-muted-foreground">(デフォルト)</span>
+              )}
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleEdit(type)}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDelete(type.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+            
+            {!type.id.includes('default') && (
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleEdit(type)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDelete(type.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         ))}
       </div>
