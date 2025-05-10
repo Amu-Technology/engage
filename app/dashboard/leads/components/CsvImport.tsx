@@ -3,30 +3,32 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 
 interface CsvImportProps {
   onSuccess: () => void
+  type?: 'individual' | 'organization'
 }
 
-export function CsvImport({ onSuccess }: CsvImportProps) {
-  const [file, setFile] = useState<File | null>(null)
+export function CsvImport({ onSuccess, type = 'individual' }: CsvImportProps) {
+  const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
-    }
-  }
-
-  const handleImport = async () => {
-    if (!file) {
-      toast.error('ファイルを選択してください')
-      return
-    }
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
 
     setIsLoading(true)
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('type', type)
 
     try {
       const response = await fetch('/api/leads/import', {
@@ -34,13 +36,11 @@ export function CsvImport({ onSuccess }: CsvImportProps) {
         body: formData,
       })
 
-      if (!response.ok) {
-        throw new Error('CSVのインポートに失敗しました')
-      }
+      if (!response.ok) throw new Error('CSVのインポートに失敗しました')
 
-      toast.success('CSVのインポートが完了しました')
+      toast.success('CSVをインポートしました')
+      setOpen(false)
       onSuccess()
-      setFile(null)
     } catch (error) {
       console.error('エラー:', error)
       toast.error('CSVのインポートに失敗しました')
@@ -50,25 +50,32 @@ export function CsvImport({ onSuccess }: CsvImportProps) {
   }
 
   return (
-    <div className="flex items-center space-x-2">
-      <input
-        type="file"
-        accept=".csv"
-        onChange={handleFileChange}
-        className="hidden"
-        id="csv-upload"
-      />
-      <Button
-        variant="outline"
-        onClick={() => document.getElementById('csv-upload')?.click()}
-      >
-        CSVインポート
-      </Button>
-      {file && (
-        <Button onClick={handleImport} disabled={isLoading}>
-          {isLoading ? 'インポート中...' : 'インポート実行'}
-        </Button>
-      )}
-    </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">CSVインポート</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>CSVインポート</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <Input
+            type="file"
+            accept=".csv"
+            onChange={handleFileUpload}
+            disabled={isLoading}
+          />
+          <div className="flex justify-end space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
+              キャンセル
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 } 

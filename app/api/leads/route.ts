@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await auth()
     if (!session?.user?.email) {
@@ -18,9 +18,39 @@ export async function GET() {
       return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
     }
 
+    const { searchParams } = new URL(request.url)
+    const type = searchParams.get('type')
+
+    // 組織リードへのアクセス権チェック
+    if (type === 'organization' && user.role !== 'admin' && user.role !== 'manager') {
+      return NextResponse.json({ error: '権限がありません' }, { status: 403 })
+    }
+
+    const where = {
+      organizationId: user.organization.id,
+      ...(type && { type })
+    }
+
     const leads = await prisma.lead.findMany({
-      where: { organizationId: user.organization.id },
-      orderBy: { createdAt: 'desc' }
+      where,
+      include: {
+        groups: {
+          select: {
+            id: true,
+            groupId: true
+          }
+        },
+        leadsStatus: {
+          select: {
+            id: true,
+            name: true,
+            color: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
     })
 
     return NextResponse.json(leads)

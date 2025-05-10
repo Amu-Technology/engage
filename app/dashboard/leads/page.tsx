@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
+import { useUser } from '@/app/providers/UserProvider'
 import {
   Table,
   TableBody,
@@ -45,6 +46,7 @@ import { LeadForm } from './components/LeadForm'
 import { LeadActions } from './components/LeadActions'
 import { MultiSelect } from "@/components/ui/multi-select"
 import { DataTablePagination } from './components/DataTablePagination'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface Lead {
   id: string
@@ -87,9 +89,11 @@ interface Group {
 }
 
 export default function LeadsPage() {
+  const { user, isLoading: isUserLoading } = useUser()
   const [leads, setLeads] = useState<Lead[]>([])
   const [groups, setGroups] = useState<Group[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'individual' | 'organization'>('individual')
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -108,9 +112,9 @@ export default function LeadsPage() {
   const [filteredTotal, setFilteredTotal] = useState(0)
   const [leadsStatuses, setLeadsStatuses] = useState<{ id: string; name: string; color: string | null }[]>([])
 
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     try {
-      const response = await fetch('/api/leads')
+      const response = await fetch(`/api/leads?type=${activeTab}`)
       if (!response.ok) {
         throw new Error('リード一覧の取得に失敗しました')
       }
@@ -122,7 +126,7 @@ export default function LeadsPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [activeTab])
 
   const fetchGroups = async () => {
     try {
@@ -155,7 +159,12 @@ export default function LeadsPage() {
   }
 
   useEffect(() => {
-    fetchLeads()
+    if (!isUserLoading) {
+      fetchLeads()
+    }
+  }, [isUserLoading, activeTab, fetchLeads])
+
+  useEffect(() => {
     fetchGroups()
     fetchLeadsStatuses()
   }, [])
@@ -658,7 +667,10 @@ export default function LeadsPage() {
     setFilteredTotal(filteredRowsLength)
   }, [filteredRowsLength])
 
-  if (isLoading) {
+  // 組織リードへのアクセス権チェック
+  const canAccessOrganization = user?.role === 'admin' || user?.role === 'manager'
+
+  if (isUserLoading || isLoading) {
     return <div className="p-4">読み込み中...</div>
   }
 
@@ -667,136 +679,198 @@ export default function LeadsPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">リード一覧</h1>
         <div className="flex items-center space-x-2">
-          <LeadForm onSuccess={fetchLeads} />
-          <CsvImport onSuccess={fetchLeads} />
+          <LeadForm onSuccess={fetchLeads} type={activeTab} />
+          <CsvImport onSuccess={fetchLeads} type={activeTab} />
         </div>
-    
-
       </div>
 
-      <BulkActions
-        selectedRows={table.getSelectedRowModel().rows}
-        groups={groups}
-        leadsStatuses={leadsStatuses}
-        onGroupChange={handleGroupChange}
-        onStatusChange={handleStatusChange}
-        onPaymentStatusChange={handlePaymentStatusChange}
-        onLeadsUpdate={(updatedLeads: Lead[]) => {
-          setLeads(updatedLeads as Lead[])
-          // テーブルの状態も更新
-          table.setRowSelection({})
-        }}
-      />
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'individual' | 'organization')}>
+        <TabsList>
+          <TabsTrigger value="individual">個人リード</TabsTrigger>
+          {canAccessOrganization && (
+            <TabsTrigger value="organization">組織リード</TabsTrigger>
+          )}
+        </TabsList>
+        <TabsContent value="individual">
+          <BulkActions
+            selectedRows={table.getSelectedRowModel().rows}
+            groups={groups}
+            leadsStatuses={leadsStatuses}
+            onGroupChange={handleGroupChange}
+            onStatusChange={handleStatusChange}
+            onPaymentStatusChange={handlePaymentStatusChange}
+            onLeadsUpdate={(updatedLeads: Lead[]) => {
+              setLeads(updatedLeads as Lead[])
+              // テーブルの状態も更新
+              table.setRowSelection({})
+            }}
+          />
 
+          <div className="flex flex-col space-y-4">
+            <div className="flex justify-between items-center">
+              <SearchBar onSearch={handleSearch} />
+              {Object.entries(searchParams).some(([, value]) => value) && (
+                <div className="text-sm text-muted-foreground">
+                  検索条件: {Object.entries(searchParams)
+                    .filter(([, value]) => value)
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join(', ')}
+                </div>
+              )}
+            </div>
 
-<div className="flex flex-col space-y-4">
-  <div className="flex justify-between items-center">
-    <SearchBar onSearch={handleSearch} />
-    {Object.entries(searchParams).some(([, value]) => value) && (
-      <div className="text-sm text-muted-foreground">
-        検索条件: {Object.entries(searchParams)
-          .filter(([, value]) => value)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(', ')}
-      </div>
-    )}
-  </div>
-
-  <div className="flex items-center space-x-2">
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="ml-auto">
-          表示項目 <ChevronDown className="ml-2 h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {table
-          .getAllColumns()
-          .filter((column) => column.getCanHide())
-          .map((column) => {
-            return (
-              <DropdownMenuCheckboxItem
-                key={column.id}
-                className="capitalize"
-                checked={column.getIsVisible()}
-                onCheckedChange={(value) =>
-                  column.toggleVisibility(!!value)
-                }
+            <div className="flex items-center space-x-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="ml-auto">
+                    表示項目 <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => {
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={column.id}
+                          className="capitalize"
+                          checked={column.getIsVisible()}
+                          onCheckedChange={(value) =>
+                            column.toggleVisibility(!!value)
+                          }
+                        >
+                          {column.id}
+                        </DropdownMenuCheckboxItem>
+                      )
+                    })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Select
+                value={String(pagination.pageSize)}
+                onValueChange={(value) => setPagination({ ...pagination, pageSize: Number(value) })}
               >
-                {column.id}
-              </DropdownMenuCheckboxItem>
-            )
-          })}
-      </DropdownMenuContent>
-    </DropdownMenu>
-    <Select
-      value={String(pagination.pageSize)}
-      onValueChange={(value) => setPagination({ ...pagination, pageSize: Number(value) })}
-    >
-      <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="表示件数" />
-      </SelectTrigger>
-      <SelectContent>
-        {[10, 50, 100, 200, 500].map((size) => (
-          <SelectItem key={size} value={String(size)}>
-            {size}件表示
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
-</div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="表示件数" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[10, 50, 100, 200, 500].map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size}件表示
+                    </SelectItem>
                   ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  リードが見つかりません
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      <div className="flex items-center justify-end space-x-2">
-        <DataTablePagination table={table} totalItems={filteredTotal || leads.length} />
-      </div>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      リードが見つかりません
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="flex items-center justify-end space-x-2">
+            <DataTablePagination table={table} totalItems={filteredTotal || leads.length} />
+          </div>
+        </TabsContent>
+        {canAccessOrganization && (
+          <TabsContent value="organization">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        リードが見つかりません
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="flex items-center justify-end space-x-2">
+              <DataTablePagination table={table} totalItems={filteredTotal || leads.length} />
+            </div>
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   )
 } 

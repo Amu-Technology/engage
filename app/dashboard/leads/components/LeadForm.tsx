@@ -67,6 +67,7 @@ interface LeadFormProps {
     isPaid: boolean
   }
   onSuccess: () => void
+  type: 'individual' | 'organization'
 }
 
 export function LeadForm({ lead, onSuccess }: LeadFormProps) {

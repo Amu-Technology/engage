@@ -152,8 +152,8 @@ export default function LeadDetailPage() {
     <div className="container mx-auto p-4 space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>リード情報</CardTitle>
-          <LeadForm lead={lead} onSuccess={fetchLeadData} />
+          <CardTitle>リード情報:{lead.type=='individual' ? '個人' : '組織'}</CardTitle>
+          <LeadForm lead={lead} onSuccess={fetchLeadData} type={lead.type as 'individual' | 'organization'} />
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
