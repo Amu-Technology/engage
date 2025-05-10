@@ -38,14 +38,19 @@ const baseNavItems = [
     icon: IconUserCheck,
     children: [
       {
-        title: "有権者名簿",
+        title: "リード管理",
         url: "/dashboard/leads",
         icon: IconUserCheck,
       },
       {
-        title: "団体名簿",
-        url: "/dashboard/organizations",
-        icon: IconListDetails,
+        title: "カレンダー",
+        url: "/dashboard/calendar",
+        icon: IconUserCheck,
+      },
+      {
+        title: "マップ表示",
+        url: "/dashboard/leads",
+        icon: IconUserCheck,
       },
     ],
   },
