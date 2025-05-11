@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useCallback } from 'react'
-import { toast } from 'sonner'
-import { useUser } from '@/app/providers/UserProvider'
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+import { useUser } from "@/app/providers/UserProvider";
 import {
   Table,
   TableBody,
@@ -10,23 +10,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { ArrowUpDown, ChevronDown} from 'lucide-react'
+} from "@/components/ui/select";
+import { ArrowUpDown, ChevronDown } from "lucide-react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -38,271 +38,277 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table'
-import { BulkActions } from './components/BulkActions'
-import { CsvImport } from './components/CsvImport'
-import { SearchBar } from './components/SearchBar'
-import { LeadForm } from './components/LeadForm'
-import { LeadActions } from './components/LeadActions'
-import { MultiSelect } from "@/components/ui/multi-select"
-import { DataTablePagination } from './components/DataTablePagination'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+} from "@tanstack/react-table";
+import { BulkActions } from "./components/BulkActions";
+import { CsvImport } from "./components/CsvImport";
+import { SearchBar } from "./components/SearchBar";
+import { LeadForm } from "./components/LeadForm";
+import { LeadActions } from "./components/LeadActions";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { DataTablePagination } from "./components/DataTablePagination";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Lead {
-  id: string
-  name: string
-  nameReading: string | null
-  nickname: string | null
-  type: string
-  district: string | null
-  homePhone: string | null
-  mobilePhone: string | null
-  company: string | null
-  position: string | null
-  postalCode: string | null
-  address: string | null
-  email: string | null
-  referrer: string | null
-  evaluation: number | null
-  status: string
-  isPaid: boolean
-  groupId: string | null
+  id: string;
+  name: string;
+  nameReading: string | null;
+  nickname: string | null;
+  type: string;
+  district: string | null;
+  homePhone: string | null;
+  mobilePhone: string | null;
+  company: string | null;
+  position: string | null;
+  postalCode: string | null;
+  address: string | null;
+  email: string | null;
+  referrer: string | null;
+  evaluation: number | null;
+  status: string;
+  isPaid: boolean;
+  groupId: string | null;
   group: {
-    id: string
-    name: string
-  } | null
-  statusId: string | null
+    id: string;
+    name: string;
+  } | null;
+  statusId: string | null;
   leadsStatus: {
-    id: string
-    name: string
-    color: string | null
-  } | null
+    id: string;
+    name: string;
+    color: string | null;
+  } | null;
   groups?: {
-    id: string
-    groupId: string
-  }[]
+    id: string;
+    groupId: string;
+  }[];
 }
 
 interface Group {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 export default function LeadsPage() {
-  const { user, isLoading: isUserLoading } = useUser()
-  const [leads, setLeads] = useState<Lead[]>([])
-  const [groups, setGroups] = useState<Group[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'individual' | 'organization'>('individual')
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = useState({})
+  const { user, isLoading: isUserLoading } = useUser();
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"individual" | "organization">(
+    "individual"
+  );
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
-  })
+  });
   const [searchParams, setSearchParams] = useState({
-    name: '',
-    nameReading: '',
-    address: '',
-    district: '',
-    phone: ''
-  })
-  const [filteredTotal, setFilteredTotal] = useState(0)
-  const [leadsStatuses, setLeadsStatuses] = useState<{ id: string; name: string; color: string | null }[]>([])
+    name: "",
+    nameReading: "",
+    address: "",
+    district: "",
+    phone: "",
+  });
+  const [filteredTotal, setFilteredTotal] = useState(0);
+  const [leadsStatuses, setLeadsStatuses] = useState<
+    { id: string; name: string; color: string | null }[]
+  >([]);
 
   const fetchLeads = useCallback(async () => {
     try {
-      const response = await fetch(`/api/leads?type=${activeTab}`)
+      const response = await fetch(`/api/leads?type=${activeTab}`);
       if (!response.ok) {
-        throw new Error('リード一覧の取得に失敗しました')
+        throw new Error("リード一覧の取得に失敗しました");
       }
-      const data = await response.json()
-      setLeads(data)
+      const data = await response.json();
+      setLeads(data);
     } catch (error) {
-      console.error('エラー:', error)
-      toast.error('リード一覧の取得に失敗しました')
+      console.error("エラー:", error);
+      toast.error("リード一覧の取得に失敗しました");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [activeTab])
+  }, [activeTab]);
 
   const fetchGroups = async () => {
     try {
-      const response = await fetch('/api/groups')
+      const response = await fetch("/api/groups");
       if (!response.ok) {
         if (response.status === 404) {
-          setGroups([])
-          return
+          setGroups([]);
+          return;
         }
-        throw new Error('グループ一覧の取得に失敗しました')
+        throw new Error("グループ一覧の取得に失敗しました");
       }
-      const data = await response.json()
-      setGroups(data)
+      const data = await response.json();
+      setGroups(data);
     } catch (error) {
-      console.error('エラー:', error)
-      setGroups([])
+      console.error("エラー:", error);
+      setGroups([]);
     }
-  }
+  };
 
   const fetchLeadsStatuses = async () => {
     try {
-      const response = await fetch('/api/leads-status')
-      if (!response.ok) throw new Error('ステータスの取得に失敗しました')
-      const data = await response.json()
-      setLeadsStatuses(data)
+      const response = await fetch("/api/leads-status");
+      if (!response.ok) throw new Error("ステータスの取得に失敗しました");
+      const data = await response.json();
+      setLeadsStatuses(data);
     } catch (err) {
-      console.error('エラー:', err)
-      toast.error('ステータスの取得に失敗しました')
+      console.error("エラー:", err);
+      toast.error("ステータスの取得に失敗しました");
     }
-  }
+  };
 
   useEffect(() => {
     if (!isUserLoading) {
-      fetchLeads()
+      fetchLeads();
     }
-  }, [isUserLoading, activeTab, fetchLeads])
+  }, [isUserLoading, activeTab, fetchLeads]);
 
   useEffect(() => {
-    fetchGroups()
-    fetchLeadsStatuses()
-  }, [])
+    fetchGroups();
+    fetchLeadsStatuses();
+  }, []);
 
   const handleGroupChange = async (leadId: string, groupIds: string[]) => {
     try {
       // 単一のリードの場合
-      if (typeof leadId === 'string') {
+      if (typeof leadId === "string") {
         const response = await fetch(`/api/leads/${leadId}/groups`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ groupIds }),
-        })
+        });
 
-        if (!response.ok) throw new Error('グループの更新に失敗しました')
+        if (!response.ok) throw new Error("グループの更新に失敗しました");
 
-        const updatedLead = await response.json()
+        const updatedLead = await response.json();
         setLeads((prev) =>
           prev.map((lead) => (lead.id === leadId ? updatedLead : lead))
-        )
-      } 
+        );
+      }
       // 複数のリードの場合
       else if (Array.isArray(leadId)) {
         const response = await fetch(`/api/groups/${groupIds[0]}/leads`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ leadIds: leadId }),
-        })
+        });
 
-        if (!response.ok) throw new Error('グループの更新に失敗しました')
+        if (!response.ok) throw new Error("グループの更新に失敗しました");
 
         // 更新されたリードの情報を取得
-        const updatedLeads = await fetch('/api/leads').then(res => res.json())
-        setLeads(updatedLeads)
+        const updatedLeads = await fetch("/api/leads").then((res) =>
+          res.json()
+        );
+        setLeads(updatedLeads);
       }
 
-      toast.success('グループを更新しました')
+      toast.success("グループを更新しました");
     } catch (err) {
-      console.error('エラー:', err)
-      toast.error('グループの更新に失敗しました')
+      console.error("エラー:", err);
+      toast.error("グループの更新に失敗しました");
     }
-  }
+  };
 
   const handleStatusChange = async (leadId: string, statusId: string) => {
     try {
       const response = await fetch(`/api/leads/${leadId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ statusId }),
-      })
+      });
 
-      if (!response.ok) throw new Error('ステータスの更新に失敗しました')
+      if (!response.ok) throw new Error("ステータスの更新に失敗しました");
 
-      const updatedLead = await response.json()
+      const updatedLead = await response.json();
       setLeads((prev) =>
         prev.map((lead) => (lead.id === leadId ? updatedLead : lead))
-      )
-      toast.success('ステータスを更新しました')
+      );
+      toast.success("ステータスを更新しました");
     } catch (err) {
-      console.error('エラー:', err)
-      toast.error('ステータスの更新に失敗しました')
+      console.error("エラー:", err);
+      toast.error("ステータスの更新に失敗しました");
     }
-  }
+  };
 
   const handlePaymentStatusChange = async (leadId: string, isPaid: boolean) => {
     try {
       const response = await fetch(`/api/leads/${leadId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isPaid }),
-      })
+      });
 
-      if (!response.ok) throw new Error('入金状況の更新に失敗しました')
+      if (!response.ok) throw new Error("入金状況の更新に失敗しました");
 
-      const updatedLead = await response.json()
+      const updatedLead = await response.json();
       setLeads((prev) =>
         prev.map((lead) => (lead.id === leadId ? updatedLead : lead))
-      )
+      );
     } catch (err) {
-      console.error('エラー:', err)
-      toast.error('入金状況の更新に失敗しました')
+      console.error("エラー:", err);
+      toast.error("入金状況の更新に失敗しました");
     }
-  }
+  };
 
   const handleSearch = (params: {
-    name: string
-    nameReading: string
-    address: string
-    district: string
-    phone: string
+    name: string;
+    nameReading: string;
+    address: string;
+    district: string;
+    phone: string;
   }) => {
-    setSearchParams(params)
-    
+    setSearchParams(params);
+
     // 各カラムにフィルターを設定
-    const filters: ColumnFiltersState = []
-    
+    const filters: ColumnFiltersState = [];
+
     if (params.name) {
       filters.push({
-        id: 'name',
-        value: params.name
-      })
+        id: "name",
+        value: params.name,
+      });
     }
     if (params.nameReading) {
       filters.push({
-        id: 'nameReading',
-        value: params.nameReading
-      })
+        id: "nameReading",
+        value: params.nameReading,
+      });
     }
     if (params.address) {
       filters.push({
-        id: 'address',
-        value: params.address
-      })
+        id: "address",
+        value: params.address,
+      });
     }
     if (params.district) {
       filters.push({
-        id: 'district',
-        value: params.district
-      })
+        id: "district",
+        value: params.district,
+      });
     }
     if (params.phone) {
       filters.push({
-        id: 'phone',
-        value: params.phone
-      })
+        id: "phone",
+        value: params.phone,
+      });
     }
-    
-    setColumnFilters(filters)
-  }
+
+    setColumnFilters(filters);
+  };
 
   const columns: ColumnDef<Lead>[] = [
     {
-      id: 'select',
+      id: "select",
       header: ({ table }) => (
         <Checkbox
           checked={
             table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
+            (table.getIsSomePageRowsSelected() && "indeterminate")
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="すべて選択"
@@ -317,120 +323,122 @@ export default function LeadsPage() {
       ),
     },
     {
-      accessorKey: 'name',
+      accessorKey: "name",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             名前
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       cell: ({ row }) => {
-        const lead = row.original
+        const lead = row.original;
         return (
           <Button
             variant="link"
             className="p-0 h-auto font-normal"
-            onClick={() => window.location.href = `/dashboard/leads/${lead.id}`}
+            onClick={() =>
+              (window.location.href = `/dashboard/leads/${lead.id}`)
+            }
           >
             {lead.name}
           </Button>
-        )
+        );
       },
       filterFn: (row, id, value) => {
-        const val = row.getValue(id)
-        if (!val) return false
-        return val.toString().toLowerCase().includes(value.toLowerCase())
-      }
+        const val = row.getValue(id);
+        if (!val) return false;
+        return val.toString().toLowerCase().includes(value.toLowerCase());
+      },
     },
     {
-      accessorKey: 'nameReading',
+      accessorKey: "nameReading",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             読み仮名
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       filterFn: (row, id, value) => {
-        const val = row.getValue(id)
-        if (!val) return false
-        return val.toString().toLowerCase().includes(value.toLowerCase())
-      }
+        const val = row.getValue(id);
+        if (!val) return false;
+        return val.toString().toLowerCase().includes(value.toLowerCase());
+      },
     },
     {
-      accessorKey: 'address',
+      accessorKey: "address",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             住所
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       filterFn: (row, id, value) => {
-        const val = row.getValue(id)
-        if (!val) return false
-        return val.toString().toLowerCase().includes(value.toLowerCase())
-      }
+        const val = row.getValue(id);
+        if (!val) return false;
+        return val.toString().toLowerCase().includes(value.toLowerCase());
+      },
     },
     {
-      accessorKey: 'district',
+      accessorKey: "district",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             地区
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       filterFn: (row, id, value) => {
-        const val = row.getValue(id)
-        if (!val) return false
-        return val.toString().toLowerCase().includes(value.toLowerCase())
-      }
+        const val = row.getValue(id);
+        if (!val) return false;
+        return val.toString().toLowerCase().includes(value.toLowerCase());
+      },
     },
     {
-      accessorKey: 'phone',
+      accessorKey: "phone",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             電話番号
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       filterFn: (row, id, value) => {
-        const phone = row.getValue('homePhone')?.toString() || ''
-        const mobilePhone = row.getValue('mobilePhone')?.toString() || ''
-        return phone.includes(value) || mobilePhone.includes(value)
-      }
+        const phone = row.getValue("homePhone")?.toString() || "";
+        const mobilePhone = row.getValue("mobilePhone")?.toString() || "";
+        return phone.includes(value) || mobilePhone.includes(value);
+      },
     },
     {
-      accessorKey: 'status',
-      header: 'ステータス',
+      accessorKey: "status",
+      header: "ステータス",
       cell: ({ row }) => {
-        const lead = row.original
+        const lead = row.original;
         return (
           <Select
-            value={lead.statusId || ''}
+            value={lead.statusId || ""}
             onValueChange={(value) => handleStatusChange(lead.id, value)}
           >
             <SelectTrigger className="w-[180px]">
@@ -452,184 +460,188 @@ export default function LeadsPage() {
               ))}
             </SelectContent>
           </Select>
-        )
+        );
       },
     },
     {
-      accessorKey: 'homePhone',
+      accessorKey: "homePhone",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             自宅電話
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
     },
     {
-      accessorKey: 'mobilePhone',
+      accessorKey: "mobilePhone",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             携帯電話
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
     },
     {
-      accessorKey: 'company',
+      accessorKey: "company",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             会社
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
     },
     {
-      accessorKey: 'position',
+      accessorKey: "position",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             役職
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
     },
     {
-      accessorKey: 'postalCode',
+      accessorKey: "postalCode",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             郵便番号
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
     },
     {
-      accessorKey: 'email',
+      accessorKey: "email",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             メールアドレス
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
     },
     {
-      accessorKey: 'referrer',
+      accessorKey: "referrer",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             紹介者
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
     },
     {
-      accessorKey: 'evaluation',
+      accessorKey: "evaluation",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             評価
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
     },
     {
-      accessorKey: 'isPaid',
+      accessorKey: "isPaid",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             有料会員
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       cell: ({ row }) => {
-        const isPaid = row.getValue('isPaid') as boolean
-        return <div>{isPaid ? 'はい' : 'いいえ'}</div>
+        const isPaid = row.getValue("isPaid") as boolean;
+        return <div>{isPaid ? "はい" : "いいえ"}</div>;
       },
     },
     {
-      accessorKey: 'createdAt',
+      accessorKey: "createdAt",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             登録日
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       cell: ({ row }) => {
-        const date = row.getValue('createdAt') as Date
-        return <div>{date ? new Date(date).toLocaleDateString('ja-JP') : '-'}</div>
+        const date = row.getValue("createdAt") as Date;
+        return (
+          <div>{date ? new Date(date).toLocaleDateString("ja-JP") : "-"}</div>
+        );
       },
     },
     {
-      accessorKey: 'groups',
-      header: 'グループ',
+      accessorKey: "groups",
+      header: "グループ",
       cell: ({ row }) => {
-        const lead = row.original
+        const lead = row.original;
         return (
           <MultiSelect
-            value={lead.groups?.map(g => g.groupId) || []}
+            value={lead.groups?.map((g) => g.groupId) || []}
             onChange={(value) => handleGroupChange(lead.id, value)}
-            options={groups.map(group => ({
+            options={groups.map((group) => ({
               value: group.id,
-              label: group.name
+              label: group.name,
             }))}
             placeholder="グループを選択"
           />
-        )
+        );
       },
     },
     {
-      id: 'actions',
+      id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const lead = row.original
-        return <LeadActions leadId={lead.id} lead={lead} onSuccess={fetchLeads} />
+        const lead = row.original;
+        return (
+          <LeadActions leadId={lead.id} lead={lead} onSuccess={fetchLeads} />
+        );
       },
     },
-  ]
+  ];
 
   const table = useReactTable({
     data: leads,
@@ -652,26 +664,29 @@ export default function LeadsPage() {
     },
     filterFns: {
       customFilter: (row, columnId, filterValue) => {
-        const value = row.getValue(columnId)
-        if (!value) return false
-        return String(value).toLowerCase().includes(String(filterValue).toLowerCase())
-      }
-    }
-  })
+        const value = row.getValue(columnId);
+        if (!value) return false;
+        return String(value)
+          .toLowerCase()
+          .includes(String(filterValue).toLowerCase());
+      },
+    },
+  });
 
-  const filteredRows = table.getFilteredRowModel().rows
-  const filteredRowsLength = filteredRows.length
+  const filteredRows = table.getFilteredRowModel().rows;
+  const filteredRowsLength = filteredRows.length;
 
   useEffect(() => {
     // フィルター適用後の総数を更新
-    setFilteredTotal(filteredRowsLength)
-  }, [filteredRowsLength])
+    setFilteredTotal(filteredRowsLength);
+  }, [filteredRowsLength]);
 
   // 組織リードへのアクセス権チェック
-  const canAccessOrganization = user?.role === 'admin' || user?.role === 'manager'
+  const canAccessOrganization =
+    user?.role === "admin" || user?.role === "manager";
 
   if (isUserLoading || isLoading) {
-    return <div className="p-4">読み込み中...</div>
+    return <div className="p-4">読み込み中...</div>;
   }
 
   return (
@@ -684,7 +699,12 @@ export default function LeadsPage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'individual' | 'organization')}>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) =>
+          setActiveTab(value as "individual" | "organization")
+        }
+      >
         <TabsList>
           <TabsTrigger value="individual">個人リード</TabsTrigger>
           {canAccessOrganization && (
@@ -700,21 +720,22 @@ export default function LeadsPage() {
             onStatusChange={handleStatusChange}
             onPaymentStatusChange={handlePaymentStatusChange}
             onLeadsUpdate={(updatedLeads: Lead[]) => {
-              setLeads(updatedLeads as Lead[])
+              setLeads(updatedLeads as Lead[]);
               // テーブルの状態も更新
-              table.setRowSelection({})
+              table.setRowSelection({});
             }}
           />
-
+          {/* 個人リード */}
           <div className="flex flex-col space-y-4">
             <div className="flex justify-between items-center">
               <SearchBar onSearch={handleSearch} />
               {Object.entries(searchParams).some(([, value]) => value) && (
                 <div className="text-sm text-muted-foreground">
-                  検索条件: {Object.entries(searchParams)
+                  検索条件:{" "}
+                  {Object.entries(searchParams)
                     .filter(([, value]) => value)
                     .map(([key, value]) => `${key}: ${value}`)
-                    .join(', ')}
+                    .join(", ")}
                 </div>
               )}
             </div>
@@ -742,13 +763,15 @@ export default function LeadsPage() {
                         >
                           {column.id}
                         </DropdownMenuCheckboxItem>
-                      )
+                      );
                     })}
                 </DropdownMenuContent>
               </DropdownMenu>
               <Select
                 value={String(pagination.pageSize)}
-                onValueChange={(value) => setPagination({ ...pagination, pageSize: Number(value) })}
+                onValueChange={(value) =>
+                  setPagination({ ...pagination, pageSize: Number(value) })
+                }
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="表示件数" />
@@ -763,6 +786,8 @@ export default function LeadsPage() {
               </Select>
             </div>
           </div>
+
+          {/* 個人リードのテーブル */}
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -786,7 +811,7 @@ export default function LeadsPage() {
                   table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
+                      data-state={row.getIsSelected() && "selected"}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
@@ -812,11 +837,93 @@ export default function LeadsPage() {
             </Table>
           </div>
           <div className="flex items-center justify-end space-x-2">
-            <DataTablePagination table={table} totalItems={filteredTotal || leads.length} />
+            <DataTablePagination
+              table={table}
+              totalItems={filteredTotal || leads.length}
+            />
           </div>
         </TabsContent>
+
+        {/* 組織リード */}
         {canAccessOrganization && (
           <TabsContent value="organization">
+            <BulkActions
+              selectedRows={table.getSelectedRowModel().rows}
+              groups={groups}
+              leadsStatuses={leadsStatuses}
+              onGroupChange={handleGroupChange}
+              onStatusChange={handleStatusChange}
+              onPaymentStatusChange={handlePaymentStatusChange}
+              onLeadsUpdate={(updatedLeads: Lead[]) => {
+                setLeads(updatedLeads as Lead[]);
+                // テーブルの状態も更新
+                table.setRowSelection({});
+              }}
+            />
+
+            {/* 個人リード */}
+            <div className="flex flex-col space-y-4">
+              <div className="flex justify-between items-center">
+                <SearchBar onSearch={handleSearch} />
+                {Object.entries(searchParams).some(([, value]) => value) && (
+                  <div className="text-sm text-muted-foreground">
+                    検索条件:{" "}
+                    {Object.entries(searchParams)
+                      .filter(([, value]) => value)
+                      .map(([key, value]) => `${key}: ${value}`)
+                      .join(", ")}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="ml-auto">
+                      表示項目 <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {table
+                      .getAllColumns()
+                      .filter((column) => column.getCanHide())
+                      .map((column) => {
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={column.id}
+                            className="capitalize"
+                            checked={column.getIsVisible()}
+                            onCheckedChange={(value) =>
+                              column.toggleVisibility(!!value)
+                            }
+                          >
+                            {column.id}
+                          </DropdownMenuCheckboxItem>
+                        );
+                      })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Select
+                  value={String(pagination.pageSize)}
+                  onValueChange={(value) =>
+                    setPagination({ ...pagination, pageSize: Number(value) })
+                  }
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="表示件数" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[10, 50, 100, 200, 500].map((size) => (
+                      <SelectItem key={size} value={String(size)}>
+                        {size}件表示
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* 組織リードのテーブル */}
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -840,7 +947,7 @@ export default function LeadsPage() {
                     table.getRowModel().rows.map((row) => (
                       <TableRow
                         key={row.id}
-                        data-state={row.getIsSelected() && 'selected'}
+                        data-state={row.getIsSelected() && "selected"}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>
@@ -866,11 +973,14 @@ export default function LeadsPage() {
               </Table>
             </div>
             <div className="flex items-center justify-end space-x-2">
-              <DataTablePagination table={table} totalItems={filteredTotal || leads.length} />
+              <DataTablePagination
+                table={table}
+                totalItems={filteredTotal || leads.length}
+              />
             </div>
           </TabsContent>
         )}
       </Tabs>
     </div>
-  )
-} 
+  );
+}

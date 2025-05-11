@@ -49,7 +49,7 @@ const baseNavItems = [
       },
       {
         title: "マップ表示",
-        url: "/dashboard/leads",
+        url: "/dashboard/map",
         icon: IconUserCheck,
       },
     ],

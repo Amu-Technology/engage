@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -70,31 +70,72 @@ interface LeadFormProps {
   type: 'individual' | 'organization'
 }
 
-export function LeadForm({ lead, onSuccess }: LeadFormProps) {
-  const [open, setOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+export function LeadForm({ lead, onSuccess, type }: LeadFormProps) {
+
+
+  console.log(type);
+  const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  console.log('lead', lead);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: lead?.name || '',
-      nameReading: lead?.nameReading || '',
-      nickname: lead?.nickname || '',
-      type: lead?.type || 'individual',
-      district: lead?.district || '',
-      homePhone: lead?.homePhone || '',
-      mobilePhone: lead?.mobilePhone || '',
-      company: lead?.company || '',
-      position: lead?.position || '',
-      postalCode: lead?.postalCode || '',
-      address: lead?.address || '',
-      email: lead?.email || '',
-      referrer: lead?.referrer || '',
-      evaluation: lead?.evaluation || 0,
-      status: lead?.status || 'potential',
-      isPaid: lead?.isPaid || false,
+      name: '',
+      nameReading: '',
+      nickname: '',
+      type: type,
+      district: '',
+      homePhone: '',
+      mobilePhone: '',
+      company: '',
+      position: '',
+      postalCode: '',
+      address: '',
+      email: '',
+      referrer: '',
+      evaluation: 0,
+      status: 'potential',
+      isPaid: false,
     },
-  })
+  });
+  
+  // ✅ leadが存在する場合はformをリセットして上書きする
+  useEffect(() => {
+    if (lead) {
+      form.reset({
+        name: lead.name || '',
+        nameReading: lead.nameReading || '',
+        nickname: lead.nickname || '',
+        type: lead.type || type,
+        district: lead.district || '',
+        homePhone: lead.homePhone || '',
+        mobilePhone: lead.mobilePhone || '',
+        company: lead.company || '',
+        position: lead.position || '',
+        postalCode: lead.postalCode || '',
+        address: lead.address || '',
+        email: lead.email || '',
+        referrer: lead.referrer || '',
+        evaluation: lead.evaluation ?? 0,
+        status: lead.status || 'potential',
+        isPaid: lead.isPaid ?? false,
+      });
+    }
+  }, [lead, type, form]); // type も依存に含めることで切り替え対応
+  
+  useEffect(() => {
+    if (lead?.type) {
+      form.setValue('type', lead.type);
+    } else {
+      form.setValue('type', type); // propsから渡された "individual" or "organization"
+    }
+  }, [lead, type, form]);
+  
+
+
+  console.log(form.getValues());
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true)
@@ -138,10 +179,17 @@ export function LeadForm({ lead, onSuccess }: LeadFormProps) {
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{lead ? 'リードの編集' : '新規リード追加'}</DialogTitle>
+          <DialogTitle>
+            {lead
+              ? "リードの編集" + (type === "individual" ? "（個人）" : "（組織）")
+              : "新規リード追加" + (type === "individual" ? "（個人）" : "（組織）")}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
