@@ -787,6 +787,7 @@ export default function LeadsPage() {
             groups={groups}
             onStatusChange={handleStatusChange}
             onGroupChange={handleGroupChange}
+            onPaymentStatusChange={handlePaymentStatusChange}
           />
 
           <div className="flex items-center justify-end space-x-2">
@@ -879,6 +880,7 @@ export default function LeadsPage() {
               groups={groups}
               onStatusChange={handleStatusChange}
               onGroupChange={handleGroupChange}
+              onPaymentStatusChange={handlePaymentStatusChange}
             />
 
             <div className="flex items-center justify-end space-x-2">

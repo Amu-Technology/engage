@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { flexRender, Table as TableInstance } from "@tanstack/react-table";
 interface Lead {
   id: string;
@@ -51,9 +52,13 @@ interface LeadsTableProps {
   groups: { id: string; name: string }[];
   onStatusChange: (leadId: string, statusId: string) => void;
   onGroupChange: (leadId: string, groupIds: string[]) => void;
+  onPaymentStatusChange: (leadId: string, isPaid: boolean) => void;
 }
 
-export function LeadsTable({ table }: LeadsTableProps) {
+export function LeadsTable({
+  table,
+  onPaymentStatusChange,
+}: LeadsTableProps) {
   return (
     <div className="rounded-md border">
       <Table>
@@ -80,11 +85,33 @@ export function LeadsTable({ table }: LeadsTableProps) {
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
               >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                {row.getVisibleCells().map((cell) => {
+                  // 有料会員のセルを特別に処理
+                  if (cell.column.id === 'isPaid') {
+                    const lead = row.original;
+                    return (
+                      <TableCell key={cell.id}>
+                        <Select
+                          value={lead.isPaid ? 'true' : 'false'}
+                          onValueChange={(value) => onPaymentStatusChange(lead.id, value === 'true')}
+                        >
+                          <SelectTrigger className="w-[100px]">
+                            <SelectValue placeholder="選択" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="true">有料</SelectItem>
+                            <SelectItem value="false">無料</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    );
+                  }
+                  return (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ))
           ) : (
