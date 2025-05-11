@@ -41,6 +41,7 @@ import { MultiSelect } from "@/components/ui/multi-select";
 import { DataTablePagination } from "./components/DataTablePagination";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeadsTable } from "./components/LeadsTable";
+import { CsvExport } from "./components/CsvExport";
 
 interface Lead {
   id: string;
@@ -690,6 +691,7 @@ export default function LeadsPage() {
         <div className="flex items-center space-x-2">
           <LeadForm onSuccess={fetchLeads} type={activeTab} />
           <CsvImport onSuccess={fetchLeads} type={activeTab} />
+          <CsvExport selectedLeads={table.getSelectedRowModel().rows.map(row => row.original)} />
         </div>
       </div>
 
