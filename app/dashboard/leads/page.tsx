@@ -3,14 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useUser } from "@/app/providers/UserProvider";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -32,7 +25,7 @@ import {
   ColumnFiltersState,
   SortingState,
   VisibilityState,
-  flexRender,
+
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
@@ -47,6 +40,7 @@ import { LeadActions } from "./components/LeadActions";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { DataTablePagination } from "./components/DataTablePagination";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LeadsTable } from "./components/LeadsTable";
 
 interface Lead {
   id: string;
@@ -721,11 +715,9 @@ export default function LeadsPage() {
             onPaymentStatusChange={handlePaymentStatusChange}
             onLeadsUpdate={(updatedLeads: Lead[]) => {
               setLeads(updatedLeads as Lead[]);
-              // テーブルの状態も更新
               table.setRowSelection({});
             }}
           />
-          {/* 個人リード */}
           <div className="flex flex-col space-y-4">
             <div className="flex justify-between items-center">
               <SearchBar onSearch={handleSearch} />
@@ -787,55 +779,14 @@ export default function LeadsPage() {
             </div>
           </div>
 
-          {/* 個人リードのテーブル */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      リードが見つかりません
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <LeadsTable
+            table={table}
+            leadsStatuses={leadsStatuses}
+            groups={groups}
+            onStatusChange={handleStatusChange}
+            onGroupChange={handleGroupChange}
+          />
+
           <div className="flex items-center justify-end space-x-2">
             <DataTablePagination
               table={table}
@@ -844,7 +795,6 @@ export default function LeadsPage() {
           </div>
         </TabsContent>
 
-        {/* 組織リード */}
         {canAccessOrganization && (
           <TabsContent value="organization">
             <BulkActions
@@ -856,12 +806,10 @@ export default function LeadsPage() {
               onPaymentStatusChange={handlePaymentStatusChange}
               onLeadsUpdate={(updatedLeads: Lead[]) => {
                 setLeads(updatedLeads as Lead[]);
-                // テーブルの状態も更新
                 table.setRowSelection({});
               }}
             />
 
-            {/* 個人リード */}
             <div className="flex flex-col space-y-4">
               <div className="flex justify-between items-center">
                 <SearchBar onSearch={handleSearch} />
@@ -923,55 +871,14 @@ export default function LeadsPage() {
               </div>
             </div>
 
-            {/* 組織リードのテーブル */}
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        リードが見つかりません
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+            <LeadsTable
+              table={table}
+              leadsStatuses={leadsStatuses}
+              groups={groups}
+              onStatusChange={handleStatusChange}
+              onGroupChange={handleGroupChange}
+            />
+
             <div className="flex items-center justify-end space-x-2">
               <DataTablePagination
                 table={table}
