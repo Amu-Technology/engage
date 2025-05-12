@@ -1,5 +1,5 @@
 import { LoginForm } from "@/components/login-form"
-
+import { Suspense } from "react"
 export default function Page() {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
@@ -7,7 +7,9 @@ export default function Page() {
         <a href="https://amu-lab.com" className="flex items-center gap-2 self-center font-medium">
           Amu-Technology Inc.
         </a>
-        <LoginForm />
+        <Suspense fallback={<div>Loading...</div>}>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   )

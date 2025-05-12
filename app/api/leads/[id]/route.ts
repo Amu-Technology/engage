@@ -4,9 +4,10 @@ import { auth } from "@/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
@@ -26,7 +27,7 @@ export async function GET(
 
     const lead = await prisma.lead.findUnique({
       where: {
-        id: params.id,
+        id: id,
         organizationId: user.organization.id,
       },
     });
@@ -50,9 +51,10 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
@@ -70,7 +72,7 @@ export async function PATCH(
       );
     }
 
-    const leadId = params.id;
+    const leadId = id;
     const lead = await prisma.lead.findUnique({
       where: { id: leadId, organizationId: user.organization.id },
       include: {

@@ -4,10 +4,11 @@ import { auth } from '@/auth'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string; activityId: string } }
+  { params }: { params: Promise<{ id: string; activityId: string }> }
 ) {
   try {
-    const session = await auth()
+    const { id, activityId } = await params;
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
@@ -22,7 +23,7 @@ export async function PUT(
     }
 
     const lead = await prisma.lead.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     if (!lead) {
@@ -34,7 +35,7 @@ export async function PUT(
     }
 
     const activity = await prisma.leadActivity.findUnique({
-      where: { id: params.activityId },
+      where: { id: activityId },
     })
 
     if (!activity) {
@@ -44,7 +45,7 @@ export async function PUT(
     const { type, description } = await request.json()
 
     const updatedActivity = await prisma.leadActivity.update({
-      where: { id: params.activityId },
+      where: { id: activityId },
       data: {
         type,
         description,
@@ -60,10 +61,11 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string; activityId: string } }
+  { params }: { params: Promise<{ id: string; activityId: string }> }
 ) {
   try {
-    const session = await auth()
+    const { id, activityId } = await params;
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
@@ -78,7 +80,7 @@ export async function DELETE(
     }
 
     const lead = await prisma.lead.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     if (!lead) {
@@ -90,7 +92,7 @@ export async function DELETE(
     }
 
     const activity = await prisma.leadActivity.findUnique({
-      where: { id: params.activityId },
+      where: { id: activityId },
     })
 
     if (!activity) {
@@ -98,7 +100,7 @@ export async function DELETE(
     }
 
     await prisma.leadActivity.delete({
-      where: { id: params.activityId },
+      where: { id: activityId },
     })
 
     return NextResponse.json({ message: 'アクティビティを削除しました' })

@@ -4,10 +4,11 @@ import { auth } from '@/auth'
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
+    const { id } = await params;
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
@@ -21,7 +22,7 @@ export async function PATCH(
       return NextResponse.json({ error: '組織が見つかりません' }, { status: 404 })
     }
 
-    const leadId = await Promise.resolve(params.id)
+    const leadId =id
 
     // リードの存在確認と権限チェック
     const lead = await prisma.lead.findFirst({

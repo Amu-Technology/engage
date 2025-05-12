@@ -4,9 +4,10 @@ import { auth } from '@/auth'
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth()
     if (!session?.user?.email) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
@@ -23,7 +24,7 @@ export async function DELETE(
 
     await prisma.memoType.delete({
       where: {
-        id: params.id,
+        id: id,
         organizationId: user.organization.id,
       },
     })

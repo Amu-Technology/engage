@@ -42,8 +42,7 @@ export function ActivityTypeTable({ byType, previousByType, activityTypes }: Act
     const point = activityType?.point || 0;
     const previousCount = previousByType[type] || 0;
     const totalPoints = count * point;
-    const previousPoints = previousCount * point;
-    const pointsDiff = totalPoints - previousPoints;
+    const pointsDiff = totalPoints - (previousCount * point);
 
     return {
       type,
@@ -52,7 +51,6 @@ export function ActivityTypeTable({ byType, previousByType, activityTypes }: Act
       diff: count - previousCount,
       activityType,
       totalPoints,
-      previousPoints,
       pointsDiff
     };
   }).sort((a, b) => b.totalPoints - a.totalPoints); // ポイントの多い順にソート
@@ -103,7 +101,7 @@ export function ActivityTypeTable({ byType, previousByType, activityTypes }: Act
               </tr>
             </thead>
             <tbody>
-              {typeStats.map(({ type, count, previousCount, diff, activityType, totalPoints, previousPoints, pointsDiff }) => (
+              {typeStats.map(({ type, count, previousCount, diff, activityType, totalPoints, pointsDiff }) => (
                 <tr key={type} className="border-b">
                   <td className="py-2">
                     <div className="flex items-center gap-2">

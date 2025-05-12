@@ -4,10 +4,11 @@ import { auth } from '@/auth'
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
+    const { id } = await params;
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
@@ -22,7 +23,7 @@ export async function DELETE(
     }
 
     const leadsStatus = await prisma.leadsStatus.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     if (!leadsStatus) {
@@ -34,7 +35,7 @@ export async function DELETE(
     }
 
     await prisma.leadsStatus.delete({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     return NextResponse.json({ message: 'ステータスを削除しました' })

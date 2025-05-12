@@ -4,10 +4,11 @@ import { auth } from '@/auth'
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
+    const { id } = await params;
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
     }
@@ -22,7 +23,7 @@ export async function POST(
     }
 
     const lead = await prisma.lead.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     if (!lead) {
@@ -37,7 +38,7 @@ export async function POST(
 
     const notification = await prisma.notificationPreference.upsert({
       where: {
-        leadId: params.id,
+        leadId: id,
       },
       update: {
         email: true,
@@ -45,10 +46,11 @@ export async function POST(
         intervalDays: parseInt(days),
       },
       create: {
-        leadId: params.id,
+        leadId: id,
         email: true,
         emailAddress: email,
         intervalDays: parseInt(days),
+        organizationId: user.organization.id
       },
     })
 

@@ -11,7 +11,7 @@ export async function GET() {
       return NextResponse.json({ error: "認証が必要です" }, { status: 401 })
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: {
         id: session.user.id,
       },
@@ -20,7 +20,12 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
-        store_id: true,
+        organization: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     })
 

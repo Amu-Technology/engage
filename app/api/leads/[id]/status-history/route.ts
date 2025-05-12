@@ -4,9 +4,10 @@ import { auth } from '@/auth'
 
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const leadId = context.params.id; // これでOK
+  const { id } = await params;
+  const leadId = id;
   try {
     const session = await auth()
     if (!session?.user?.email) {

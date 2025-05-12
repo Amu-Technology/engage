@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,40 +9,40 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { MoreHorizontal } from 'lucide-react'
-import { MemoForm } from '@/components/memo-form'
-import { MemoList } from '@/components/memo-list'
-import { LeadForm } from './LeadForm'
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { MemoForm } from "@/components/memo-form";
+import { MemoList } from "@/components/memo-list";
+import { LeadForm } from "./LeadForm";
 
 interface Lead {
-  id: string
-  name: string
-  nameReading: string | null
-  nickname: string | null
-  type: string
-  district: string | null
-  homePhone: string | null
-  mobilePhone: string | null
-  company: string | null
-  position: string | null
-  postalCode: string | null
-  address: string | null
-  email: string | null
-  referrer: string | null
-  evaluation: number | null
-  status: string
-  isPaid: boolean
+  id: string;
+  name: string;
+  nameReading: string | null;
+  nickname: string | null;
+  type: string;
+  district: string | null;
+  homePhone: string | null;
+  mobilePhone: string | null;
+  company: string | null;
+  position: string | null;
+  postalCode: string | null;
+  address: string | null;
+  email: string | null;
+  referrer: string | null;
+  evaluation: number | null;
+  status: string;
+  isPaid: boolean;
 }
 
 interface LeadActionsProps {
-  leadId: string
-  lead?: Lead
-  onSuccess?: () => void
+  leadId: string;
+  lead?: Lead;
+  onSuccess?: () => void;
 }
 
 export function LeadActions({ leadId, lead, onSuccess }: LeadActionsProps) {
-  const [showMemoList, setShowMemoList] = useState(false)
+  const [showMemoList, setShowMemoList] = useState(false);
 
   return (
     <div className="relative">
@@ -69,7 +69,13 @@ export function LeadActions({ leadId, lead, onSuccess }: LeadActionsProps) {
           </div>
           <DropdownMenuSeparator />
           <div className="p-2">
-            <LeadForm lead={lead} onSuccess={onSuccess || (() => {})} />
+            <LeadForm
+              lead={lead}
+              onSuccess={onSuccess || (() => {})}
+              type={
+                lead?.type === "organization" ? "organization" : "individual"
+              }
+            />
           </div>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -89,5 +95,5 @@ export function LeadActions({ leadId, lead, onSuccess }: LeadActionsProps) {
         </div>
       )}
     </div>
-  )
-} 
+  );
+}
