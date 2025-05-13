@@ -79,7 +79,7 @@ export const POST = withAuth(async (request: Request, { user }: AuthenticatedUse
           type,
           description,
           organizationId: user.organization.id,
-          updatedAt: new Date(scheduledAt as string)
+          updatedAt: new Date(),
 
         },
         include: {

@@ -9,6 +9,7 @@ import { ActivityTypeChart } from '@/components/activity-type-chart'
 import { DateRangeSelector } from '@/components/date-range-selector'
 import { ActivityTypeTable } from '@/components/analytics/ActivityTypeTable'
 import { ActivityLeadsTable } from '@/components/analytics/ActivityLeadsTable'
+import { startOfDay, endOfDay, parseISO } from "date-fns";
 
 interface Activity {
   id: string;
@@ -61,6 +62,9 @@ export default function AnalyticsPage() {
     endDate: new Date(),
   });
 
+  const start = startOfDay(dateRange.startDate);  // その日の 00:00
+const end   = endOfDay(dateRange.endDate);      // その日の 23:59:59
+
   const handleDateRangeChange = (range: DateRange) => {
     setDateRange(range);
   };
@@ -76,6 +80,7 @@ export default function AnalyticsPage() {
       toast.error("アクティビティの取得に失敗しました");
     }
   };
+  console.log('activities', activities);
 
   const fetchActivityTypes = async () => {
     try {
@@ -107,12 +112,14 @@ export default function AnalyticsPage() {
     previousEndDate.setDate(previousEndDate.getDate() - 1);
 
     // 現在の期間のアクティビティ
-    const filteredActivities = activities.filter(
-      (activity) => {
-        const activityDate = new Date(activity.updatedAt);
-        return activityDate >= dateRange.startDate && activityDate <= dateRange.endDate;
-      }
-    );
+
+
+    const filteredActivities = activities.filter(a => {
+      const activityDate = parseISO(a.updatedAt);   // 文字列 → Date
+      return activityDate >= start && activityDate <= end;
+    });
+
+    console.log('filteredActivities', filteredActivities);
 
     // 前の期間のアクティビティ
     const previousActivities = activities.filter(

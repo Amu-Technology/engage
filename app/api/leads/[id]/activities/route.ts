@@ -43,7 +43,7 @@ export async function POST(
       return NextResponse.json({ error: "権限がありません" }, { status: 403 });
     }
 
-    const { typeId, content } = await request.json();
+    const { typeId, description } = await request.json();
 
     const activityType = await prisma.activityType.findUnique({
       where: { id: typeId },
@@ -58,13 +58,15 @@ export async function POST(
 
     const activity = await prisma.leadActivity.create({
       data: {
-        description: content,
+        description,
         type: activityType.name,
         typeId,
         leadId: leadId,
         organizationId: user.organization.id,
       },
     });
+
+    console.log('activity', activity);
 
     // リードの評価を更新
     const currentLead = await prisma.lead.findUnique({
