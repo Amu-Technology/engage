@@ -1,7 +1,7 @@
 'use client'
 
 import { UserList } from '@/app/dashboard/admin/components/UserList'
-import { OrganizationList } from '@/app/dashboard/admin/components/OrganizationList'
+import { OrganizationList } from './OrganizationList'
 
 export function AdminDashboard() {
   return (

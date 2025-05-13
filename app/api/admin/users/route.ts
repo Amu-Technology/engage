@@ -2,8 +2,48 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
-// ユーザー一覧の取得
+// GET: ユーザー一覧の取得
 export async function GET() {
+  try {
+    const session = await auth()
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    })
+
+    if (!user || user.role !== 'admin') {
+      return NextResponse.json({ error: '権限がありません' }, { status: 403 })
+    }
+
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        org_id: true,
+        organization: {
+          select: { id: true, name: true }
+        }
+      }
+    })
+    
+
+    return NextResponse.json(users)
+  } catch (error) {
+    console.error('エラー:', error)
+    return NextResponse.json(
+      { error: 'ユーザー一覧の取得に失敗しました' },
+      { status: 500 }
+    )
+  }
+}
+
+// POST: 新規ユーザーの作成
+export async function POST(request: Request) {
   try {
     const session = await auth()
     if (!session?.user?.email) {
@@ -18,17 +58,43 @@ export async function GET() {
       return NextResponse.json({ error: '権限がありません' }, { status: 403 })
     }
 
-    const users = await prisma.user.findMany({
-      include: {
-        organization: true
+    const body = await request.json()
+    const { email, name, role } = body
+
+    // 必須フィールドのチェック
+    if (!email || !name || !role) {
+      return NextResponse.json(
+        { error: '必要な情報が不足しています' },
+        { status: 400 }
+      )
+    }
+
+    // メールアドレスの重複チェック
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    })
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'このメールアドレスは既に使用されています' },
+        { status: 400 }
+      )
+    }
+
+    // ユーザーの作成
+    const user = await prisma.user.create({
+      data: {
+        email,
+        name,
+        role,
       }
     })
 
-    return NextResponse.json(users)
+    return NextResponse.json(user)
   } catch (error) {
     console.error('エラー:', error)
     return NextResponse.json(
-      { error: 'ユーザー一覧の取得に失敗しました' },
+      { error: 'ユーザーの作成に失敗しました' },
       { status: 500 }
     )
   }

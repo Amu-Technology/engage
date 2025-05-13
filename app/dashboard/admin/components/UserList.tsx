@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { User, Organization } from '@prisma/client'
+import { UserForm } from "@/app/dashboard/admin/components/UserForm";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export function UserList() {
   const [users, setUsers] = useState<User[]>([])
@@ -9,6 +12,7 @@ export function UserList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -44,6 +48,22 @@ export function UserList() {
 
   return (
     <div>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">ユーザー管理</h2>
+        <Button onClick={() => setShowForm(!showForm)}>
+          {showForm ? "フォームを閉じる" : "ユーザーを追加"}
+        </Button>
+      </div>
+
+      {showForm && (
+        <div className="p-4 border rounded-lg">
+          <UserForm onSuccess={() => {
+            fetchUsers();
+            setShowForm(false);
+          }} />
+        </div>
+      )}
+
       <table className="min-w-full">
         <thead>
           <tr>
@@ -90,9 +110,10 @@ export function UserList() {
                   >
                     <option value="user">一般ユーザー</option>
                     <option value="admin">管理者</option>
+                    <option value="manager">マネージャー</option>
                   </select>
                 ) : (
-                  user.role === 'admin' ? '管理者' : '一般ユーザー'
+                  user.role === 'admin' ? '管理者' : user.role === 'manager' ? 'マネージャー' : '一般ユーザー'
                 )}
               </td>
               <td className="py-2">
@@ -119,16 +140,17 @@ export function UserList() {
                     <button
                       onClick={async () => {
                         try {
-                          const response = await fetch('/api/admin/users', {
+                          const response = await fetch(`/api/admin/users/${editingUser.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(editingUser)
                           })
                           if (!response.ok) throw new Error('ユーザーの更新に失敗しました')
+                          toast.success('ユーザーを更新しました')
                           await fetchUsers()
                           setEditingUser(null)
                         } catch (error) {
-                          setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました')
+                          toast.error(error instanceof Error ? error.message : '予期せぬエラーが発生しました')
                         }
                       }}
                       className="text-blue-500 hover:text-blue-600"
@@ -154,15 +176,15 @@ export function UserList() {
                       onClick={async () => {
                         if (!confirm('このユーザーを削除してもよろしいですか？')) return
                         try {
-                          const response = await fetch('/api/admin/users', {
+                          const response = await fetch(`/api/admin/users/${user.id}`, {
                             method: 'DELETE',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: user.id })
+                            headers: { 'Content-Type': 'application/json' }
                           })
                           if (!response.ok) throw new Error('ユーザーの削除に失敗しました')
+                          toast.success('ユーザーを削除しました')
                           await fetchUsers()
                         } catch (error) {
-                          setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました')
+                          toast.error(error instanceof Error ? error.message : '予期せぬエラーが発生しました')
                         }
                       }}
                       className="text-red-500 hover:text-red-600"
