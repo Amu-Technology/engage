@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Engage - リード管理システム
 
-## Getting Started
+このプロジェクトは、Next.jsを使用したリード管理システムです。リードの管理、アクティビティの記録、イベント管理などの機能を提供します。
 
-First, run the development server:
+## 技術スタック
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **フレームワーク**: Next.js 14
+- **言語**: TypeScript
+- **データベース**: PostgreSQL
+- **ORM**: Prisma
+- **認証**: NextAuth.js
+- **UI**: Tailwind CSS, shadcn/ui
+- **グラフ**: Recharts
+
+## 必要な環境
+
+- Node.js: v18.17.0以上
+- PostgreSQL: v14以上
+- pnpm: v8.0.0以上（推奨）
+
+## プロジェクト構成
+
+```
+engage/
+├── app/                    # Next.jsのアプリケーションコード
+│   ├── api/               # APIルート
+│   ├── dashboard/         # ダッシュボード関連のページ
+│   └── providers/         # プロバイダーコンポーネント
+├── components/            # 共通コンポーネント
+│   ├── ui/               # UIコンポーネント
+│   └── analytics/        # 分析関連コンポーネント
+├── lib/                   # ユーティリティ関数
+├── prisma/               # Prismaスキーマとマイグレーション
+└── public/               # 静的ファイル
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 主要機能
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- リード管理（個人・組織）
+- アクティビティ記録
+- イベント管理
+- グループ管理
+- 分析ダッシュボード
+- ユーザー管理（管理者向け）
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## セットアップ
 
-## Learn More
+1. リポジトリのクローン
+```bash
+git clone [repository-url]
+cd engage
+```
 
-To learn more about Next.js, take a look at the following resources:
+2. 依存関係のインストール
+```bash
+pnpm install
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. 環境変数の設定
+`.env`ファイルを作成し、以下の変数を設定：
+```
+DATABASE_URL="postgresql://..."
+NEXTAUTH_SECRET="your-secret"
+GOOGLE_CLIENT_ID="your-client-id"
+GOOGLE_CLIENT_SECRET="your-client-secret"
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. データベースのセットアップ
+```bash
+pnpm prisma migrate dev
+```
 
-## Deploy on Vercel
+5. 開発サーバーの起動
+```bash
+pnpm dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 開発ガイドライン
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- コミットメッセージは日本語で記述
+- コンポーネントは`components/`ディレクトリに配置
+- APIルートは`app/api/`ディレクトリに配置
+- 型定義は各ファイル内で定義
+
+## デプロイ
+
+Vercelを使用してデプロイすることを推奨します：
+
+1. Vercelにプロジェクトをインポート
+2. 環境変数を設定
+3. デプロイを実行
+
+## ライセンス
+
+このプロジェクトは社内利用のみを許可します。
