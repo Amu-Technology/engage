@@ -11,13 +11,45 @@
 - **認証**: NextAuth.js
 - **UI**: Tailwind CSS, shadcn/ui
 - **グラフ**: Recharts
+- **パッケージマネージャー**: npm
 
 ## 必要な環境
 
 - Node.js: v18.17.0以上
 - PostgreSQL: v14以上
-- pnpm: v8.0.0以上（推奨）
+- npm: v9.0.0以上
 - Docker: v20.10.0以上（Docker環境を使用する場合）
+
+## npmの設定
+
+### インストール
+
+Node.jsをインストールすると、npmも自動的にインストールされます。
+
+### 主なコマンド
+
+```bash
+# 依存関係のインストール
+npm install
+
+# 開発サーバーの起動
+npm run dev
+
+# ビルド
+npm run build
+
+# 本番環境での起動
+npm start
+
+# 依存関係の更新
+npm update
+
+# 特定のパッケージのインストール
+npm install [パッケージ名]
+
+# 開発用パッケージのインストール
+npm install --save-dev [パッケージ名]
+```
 
 ## プロジェクト構成
 
@@ -50,13 +82,13 @@ engage/
 
 1. リポジトリのクローン
 ```bash
-git clone https://github.com/HayatoShimada/engage
+git clone [repository-url]
 cd engage
 ```
 
 2. 依存関係のインストール
 ```bash
-pnpm install
+npm install
 ```
 
 3. 環境変数の設定
@@ -70,12 +102,12 @@ GOOGLE_CLIENT_SECRET="your-client-secret"
 
 4. データベースのセットアップ
 ```bash
-pnpm prisma migrate dev
+npx prisma migrate dev
 ```
 
 5. 開発サーバーの起動
 ```bash
-pnpm dev
+npm run dev
 ```
 
 ### Docker環境でのセットアップ
@@ -100,7 +132,7 @@ docker-compose up -d
 
 4. データベースのマイグレーション
 ```bash
-docker-compose exec app pnpm prisma migrate dev
+docker-compose exec app npx prisma migrate dev
 ```
 
 アプリケーションは http://localhost:3000 でアクセス可能です。
