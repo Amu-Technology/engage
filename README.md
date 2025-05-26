@@ -17,6 +17,7 @@
 - Node.js: v18.17.0以上
 - PostgreSQL: v14以上
 - pnpm: v8.0.0以上（推奨）
+- Docker: v20.10.0以上（Docker環境を使用する場合）
 
 ## プロジェクト構成
 
@@ -44,6 +45,8 @@ engage/
 - ユーザー管理（管理者向け）
 
 ## セットアップ
+
+### ローカル環境でのセットアップ
 
 1. リポジトリのクローン
 ```bash
@@ -74,6 +77,33 @@ pnpm prisma migrate dev
 ```bash
 pnpm dev
 ```
+
+### Docker環境でのセットアップ
+
+1. リポジトリのクローン
+```bash
+git clone [repository-url]
+cd engage
+```
+
+2. 環境変数の設定
+`.env`ファイルを作成し、以下の変数を設定：
+```
+GOOGLE_CLIENT_ID="your-client-id"
+GOOGLE_CLIENT_SECRET="your-client-secret"
+```
+
+3. Dockerコンテナの起動
+```bash
+docker-compose up -d
+```
+
+4. データベースのマイグレーション
+```bash
+docker-compose exec app pnpm prisma migrate dev
+```
+
+アプリケーションは http://localhost:3000 でアクセス可能です。
 
 ## 開発ガイドライン
 
