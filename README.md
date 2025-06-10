@@ -76,7 +76,7 @@ POSTGRES_DB=engage
 
 3. Dockerコンテナの起動
 ```bash
-docker-compose up -d --build
+docker compose --env-file .env.development up -d
 ```
 ※Dockerのインストール
 ```bash
