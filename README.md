@@ -92,9 +92,8 @@ docker compose logs -f
 ```
 
 4. データベースのマイグレーションとシード
-
-### シード値の適用について
-下記の箇所を変更して、googleアカウントを追加してください。
+NEXTAuth.jsで認証した後、データベースのuserテーブルに認証したメールアドレスがあるかどうかを検証してログイン可否を決定しています。  
+その為デバッグするには`prisma/seed.ts`のuserテーブルにgoogleアカウントのシード値を追加してください。  
 ```ts
   // prisma/seed.ts
   // 管理者ユーザーを作成または更新
@@ -118,7 +117,7 @@ docker compose logs -f
     },
   })
 ```
-### マイグレーションとシード値の適用
+5. マイグレーションとシード値の適用  
 ```bash
 # マイグレーションの実行
 docker compose exec app npx prisma migrate deploy
@@ -129,7 +128,11 @@ docker compose exec app npx prisma db seed
 # ログの確認
 docker-compose logs -f app
 ```
-### pgAdminの使用方法
+6. アプリの実行
+ログを確認してdockerの起動が確認できたら開発準備完了です。  
+アプリケーションは http://localhost:3000 でアクセス可能です。 
+
+### pgAdminでのデータベース確認
 
 1. ブラウザでアクセス
 - URL: `http://localhost:5050`
@@ -147,8 +150,6 @@ docker-compose logs -f app
   - Database: `engage`
   - Username: `postgres`
   - Password: `postgres`
-
-アプリケーションは http://localhost:3000 でアクセス可能です。
 
 ### VS Codeでのデバッグ
 
