@@ -93,6 +93,32 @@ docker-compose logs -f app
 ```
 
 4. データベースのマイグレーション
+シード値として、Googleアカウントを追加します。
+```typescript
+  // prisma/seed.ts
+  // 管理者ユーザーを作成または更新
+  await prisma.user.upsert({
+    where: {
+      email: '***@gmail.com',
+    },
+    update: {
+      name: '****',
+      role: 'admin',
+      org_id: organization.id,
+      updatedAt: new Date(),
+    },
+    create: {
+      name: '****',
+      email: '****@gmail.com',
+      role: 'admin',
+      org_id: organization.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  })
+}
+```
+
 ```bash
 docker-compose exec app npm run db:migrate
 docker-compose exec app npm run db:seed
