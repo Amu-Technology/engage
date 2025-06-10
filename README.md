@@ -48,38 +48,6 @@ engage/
 
 ## セットアップ
 
-### ローカル環境でのセットアップ
-
-1. リポジトリのクローン
-```bash
-git clone [repository-url]
-cd engage
-```
-
-2. 依存関係のインストール
-```bash
-npm install
-```
-
-3. 環境変数の設定
-`.env`ファイルを作成し、以下の変数を設定：
-```
-DATABASE_URL="postgresql://..."
-NEXTAUTH_SECRET="your-secret"
-GOOGLE_CLIENT_ID="your-client-id"
-GOOGLE_CLIENT_SECRET="your-client-secret"
-```
-
-4. データベースのセットアップ
-```bash
-npx prisma migrate dev
-```
-
-5. 開発サーバーの起動
-```bash
-npm run dev
-```
-
 ### Docker環境でのセットアップ
 
 1. リポジトリのクローン
