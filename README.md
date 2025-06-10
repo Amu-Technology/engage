@@ -88,11 +88,42 @@ brew install --cask docker
 # コンテナの停止
 docker-compose down
 
+
+2. 環境変数の設定
+`.env.development`ファイルを作成し、以下の変数を設定：
+```
+DATABASE_URL="postgresql://postgres:postgres@db:5432/engage?schema=public"
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=engage
+GOOGLE_CLIENT_ID="your-client-id"
+GOOGLE_CLIENT_SECRET="your-client-secret"
+```
+
+3. Dockerコンテナの起動
+```bash
+# コンテナのビルドと起動
+docker compose up -d --build
+
+# コンテナの状態確認
+docker compose ps
+
+# ログの確認
+docker compose logs -f
+```
+
+4. データベースのマイグレーションとシード
+```bash
+# マイグレーションの実行
+docker compose exec app npx prisma migrate deploy
+
+# シードデータの投入
+docker compose exec app npx prisma db seed
+
 # ログの確認
 docker-compose logs -f app
 ```
 
-4. データベースのマイグレーション
 シード値として、Googleアカウントを追加します。
 ```typescript
   // prisma/seed.ts
@@ -123,6 +154,71 @@ docker-compose logs -f app
 docker-compose exec app npm run db:migrate
 docker-compose exec app npm run db:seed
 ```
+
+### シード値の適用について
+下記の箇所を変更して、googleアカウントを追加してください。
+```ts
+  // prisma/seed.ts
+  // 管理者ユーザーを作成または更新
+  await prisma.user.upsert({
+    where: {
+      email: '***@gmail.com',
+    },
+    update: {
+      name: '****',
+      role: 'admin',
+      org_id: organization.id,
+      updatedAt: new Date(),
+    },
+    create: {
+      name: '****',
+      email: '****@gmail.com',
+      role: 'admin',
+      org_id: organization.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  })
+```
+
+1. `prisma/seed.ts` などのシードスクリプトが存在することを確認してください。
+2. `package.json` の `prisma.seed` または `scripts.seed` にシードコマンドが設定されていることを確認してください。
+   例：
+   ```json
+   "prisma": {
+     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+   }
+   ```
+   または
+   ```json
+   "scripts": {
+     "seed": "prisma db seed"
+   }
+   ```
+3. 下記コマンドでシードを実行します。
+   ```bash
+   docker compose exec app npx prisma db seed
+   ```
+4. エラーが出なければ成功です。pgAdminやアプリ画面でデータが入っているか確認してください。
+
+### pgAdminの使用方法
+
+1. ブラウザでアクセス
+- URL: `http://localhost:5050`
+- ログイン情報：
+  - メール: `admin@admin.com`
+  - パスワード: `admin`
+
+2. データベース接続の設定
+- 左側の「Servers」を右クリック → 「Register」→「Server」
+- 「General」タブ：
+  - Name: `Engage DB`（任意の名前）
+- 「Connection」タブ：
+  - Host: `db`（Docker Composeのサービス名）
+  - Port: `5432`
+  - Database: `engage`
+  - Username: `postgres`
+  - Password: `postgres`
 
 アプリケーションは http://localhost:3000 でアクセス可能です。
 

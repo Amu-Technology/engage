@@ -108,7 +108,7 @@ async function main() {
   // 管理者ユーザーを作成または更新
   await prisma.user.upsert({
     where: {
-      email: 'yanthemajisyan@gmail.com',
+      email: 'shimada_hayato@amu-lab.com',
     },
     update: {
       name: '島田迅人',
@@ -118,7 +118,7 @@ async function main() {
     },
     create: {
       name: '島田迅人',
-      email: 'yanthemajisyan@gmail.com',
+      email: 'shimada_hayato@amu-lab.com',
       role: 'admin',
       org_id: organization.id,
       createdAt: new Date(),
