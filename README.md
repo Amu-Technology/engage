@@ -4,7 +4,7 @@
 
 ## 技術スタック
 
-- **フレームワーク**: Next.js 14
+- **フレームワーク**: Next.js 15
 - **言語**: TypeScript
 - **データベース**: PostgreSQL
 - **ORM**: Prisma
@@ -19,37 +19,6 @@
 - PostgreSQL: v14以上
 - npm: v9.0.0以上
 - Docker: v20.10.0以上（Docker環境を使用する場合）
-
-## npmの設定
-
-### インストール
-
-Node.jsをインストールすると、npmも自動的にインストールされます。
-
-### 主なコマンド
-
-```bash
-# 依存関係のインストール
-npm install
-
-# 開発サーバーの起動
-npm run dev
-
-# ビルド
-npm run build
-
-# 本番環境での起動
-npm start
-
-# 依存関係の更新
-npm update
-
-# 特定のパッケージのインストール
-npm install [パッケージ名]
-
-# 開発用パッケージのインストール
-npm install --save-dev [パッケージ名]
-```
 
 ## プロジェクト構成
 
@@ -75,6 +44,7 @@ engage/
 - グループ管理
 - 分析ダッシュボード
 - ユーザー管理（管理者向け）
+
 
 ## セットアップ
 
@@ -119,20 +89,41 @@ cd engage
 ```
 
 2. 環境変数の設定
-`.env`ファイルを作成し、以下の変数を設定：
+`.env.development`ファイルを作成し、以下の変数を設定：
 ```
-GOOGLE_CLIENT_ID="your-client-id"
-GOOGLE_CLIENT_SECRET="your-client-secret"
+# アプリケーション設定
+DATABASE_URL="postgresql://postgres:mysecretpassword@db:5432/engage"
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-very-strong-and-secret-key-for-nextauth
+
+# Google OAuth認証情報（自身のものを設定）
+GOOGLE_CLIENT_ID=your-google-client-id-goes-here
+GOOGLE_CLIENT_SECRET=your-google-client-secret-goes-here
+
+# Docker Compose用データベース設定
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=mysecretpassword
+POSTGRES_DB=engage
 ```
 
 3. Dockerコンテナの起動
 ```bash
-docker-compose up -d
+docker-compose up -d --build
+```
+
+その他のDockerコマンド
+```bash
+# コンテナの停止
+docker-compose down
+
+# ログの確認
+docker-compose logs -f app
 ```
 
 4. データベースのマイグレーション
 ```bash
-docker-compose exec app npx prisma migrate dev
+docker-compose exec app npm run db:migrate
+docker-compose exec app npm run db:seed
 ```
 
 アプリケーションは http://localhost:3000 でアクセス可能です。
