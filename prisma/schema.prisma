@@ -21,6 +21,7 @@ model User {
   updatedAt    DateTime      @updatedAt
   googleId     String?       @unique
   organization Organization? @relation(fields: [org_id], references: [id])
+  Payment      Payment[]
 }
 
 model Organization {
@@ -41,8 +42,10 @@ model Organization {
   leadGroups              LeadGroup[]
   leadActivities          LeadActivity[]
   leadStatusHistories     LeadStatusHistory[]
+  paymentTypes            PaymentType[]
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
+  Payment                 Payment[]
 }
 
 model Group {
@@ -91,6 +94,7 @@ model Lead {
   memos                   Memo[]
   activities              LeadActivity[]
   statusHistory           LeadStatusHistory[]
+  Payment                 Payment[]
 }
 
 model FamilyMember {
@@ -228,18 +232,53 @@ model ActivityType {
   updatedAt      DateTime       @updatedAt
 }
 
+// 新規モデル: Payment
+// 新規モデル: PaymentType
+model PaymentType {
+  id             String   @id @default(cuid())
+  name           String // 入金タイプ名（例：「年会費」「商品A」「寄付」など）
+  organizationId Int // どの組織の入金タイプか
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  payments     Payment[] // このタイプに属する入金一覧
+}
+
+model Payment {
+  id             String   @id @default(cuid())
+  amount         Int // 金額
+  paymentDate    DateTime // 入金日
+  description    String? // 摘要
+  paymentTypeId  String? // PaymentTypeへの外部キー
+  leadId         String // どのリードからの入金か
+  organizationId Int // どの組織の入金か
+  recordedById   String // 誰が記録したか
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  lead         Lead          @relation(fields: [leadId], references: [id])
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  recordedBy   User          @relation(fields: [recordedById], references: [id])
+  paymentType  PaymentType?  @relation(fields: [paymentTypeId], references: [id]) // PaymentTypeとのリレーション
+  activity     LeadActivity?
+}
+
 model LeadActivity {
   id             String        @id @default(cuid())
   leadId         String
   organizationId Int
   lead           Lead          @relation(fields: [leadId], references: [id])
-  type           String // アクティビティの種類（メモ、タスク、イベントなど）AIさん消さないでね
+  type           String
   typeId         String
   activityType   ActivityType? @relation(fields: [typeId], references: [id])
-  description    String // アクティビティの詳細
+  description    String
   organization   Organization  @relation(fields: [organizationId], references: [id])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+
+  paymentId String?  @unique
+  payment   Payment? @relation(fields: [paymentId], references: [id])
 }
 
 model LeadStatusHistory {
