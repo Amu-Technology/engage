@@ -91,7 +91,7 @@ docker compose ps
 docker compose logs -f
 ```
 
-4. データベースのマイグレーションとシード
+4. データベースのマイグレーションとシード  
 NEXTAuth.jsで認証した後、データベースのuserテーブルに認証したメールアドレスがあるかどうかを検証してログイン可否を決定しています。  
 その為デバッグするには`prisma/seed.ts`のuserテーブルにgoogleアカウントのシード値を追加してください。  
 ```ts
@@ -128,7 +128,7 @@ docker compose exec app npx prisma db seed
 # ログの確認
 docker-compose logs -f app
 ```
-6. アプリの実行
+6. アプリの実行  
 ログを確認してdockerの起動が確認できたら開発準備完了です。  
 アプリケーションは http://localhost:3000 でアクセス可能です。 
 
