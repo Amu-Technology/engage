@@ -78,6 +78,10 @@ POSTGRES_DB=engage
 ```bash
 docker-compose up -d --build
 ```
+※Dockerのインストール
+```bash
+brew install --cask docker
+```
 
 その他のDockerコマンド
 ```bash
