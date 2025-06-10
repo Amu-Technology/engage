@@ -1,10 +1,10 @@
-# Engage - リード管理システム
+# Engage - 政策リード管理システム
 
 このプロジェクトは、Next.jsを使用したリード管理システムです。リードの管理、アクティビティの記録、イベント管理などの機能を提供します。
 
 ## 技術スタック
 
-- **フレームワーク**: Next.js 14
+- **フレームワーク**: Next.js 15
 - **言語**: TypeScript
 - **データベース**: PostgreSQL
 - **ORM**: Prisma
@@ -15,41 +15,10 @@
 
 ## 必要な環境
 
-- Node.js: v18.17.0以上
+- Node.js: v18.18.0以上
 - PostgreSQL: v14以上
 - npm: v9.0.0以上
 - Docker: v20.10.0以上（Docker環境を使用する場合）
-
-## npmの設定
-
-### インストール
-
-Node.jsをインストールすると、npmも自動的にインストールされます。
-
-### 主なコマンド
-
-```bash
-# 依存関係のインストール
-npm install
-
-# 開発サーバーの起動
-npm run dev
-
-# ビルド
-npm run build
-
-# 本番環境での起動
-npm start
-
-# 依存関係の更新
-npm update
-
-# 特定のパッケージのインストール
-npm install [パッケージ名]
-
-# 開発用パッケージのインストール
-npm install --save-dev [パッケージ名]
-```
 
 ## プロジェクト構成
 
@@ -76,39 +45,8 @@ engage/
 - 分析ダッシュボード
 - ユーザー管理（管理者向け）
 
+
 ## セットアップ
-
-### ローカル環境でのセットアップ
-
-1. リポジトリのクローン
-```bash
-git clone [repository-url]
-cd engage
-```
-
-2. 依存関係のインストール
-```bash
-npm install
-```
-
-3. 環境変数の設定
-`.env`ファイルを作成し、以下の変数を設定：
-```
-DATABASE_URL="postgresql://..."
-NEXTAUTH_SECRET="your-secret"
-GOOGLE_CLIENT_ID="your-client-id"
-GOOGLE_CLIENT_SECRET="your-client-secret"
-```
-
-4. データベースのセットアップ
-```bash
-npx prisma migrate dev
-```
-
-5. 開発サーバーの起動
-```bash
-npm run dev
-```
 
 ### Docker環境でのセットアップ
 
@@ -117,6 +55,39 @@ npm run dev
 git clone [repository-url]
 cd engage
 ```
+
+2. 環境変数の設定
+`.env.development`ファイルを作成し、以下の変数を設定：
+```
+# アプリケーション設定
+DATABASE_URL="postgresql://postgres:mysecretpassword@db:5432/engage"
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-very-strong-and-secret-key-for-nextauth
+
+# Google OAuth認証情報（自身のものを設定）
+GOOGLE_CLIENT_ID=your-google-client-id-goes-here
+GOOGLE_CLIENT_SECRET=your-google-client-secret-goes-here
+
+# Docker Compose用データベース設定
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=mysecretpassword
+POSTGRES_DB=engage
+```
+
+3. Dockerコンテナの起動
+```bash
+docker compose --env-file .env.development up -d
+```
+※Dockerのインストール
+```bash
+brew install --cask docker
+```
+
+その他のDockerコマンド
+```bash
+# コンテナの停止
+docker-compose down
+
 
 2. 環境変数の設定
 `.env.development`ファイルを作成し、以下の変数を設定：
@@ -148,6 +119,40 @@ docker compose exec app npx prisma migrate deploy
 
 # シードデータの投入
 docker compose exec app npx prisma db seed
+
+# ログの確認
+docker-compose logs -f app
+```
+
+シード値として、Googleアカウントを追加します。
+```typescript
+  // prisma/seed.ts
+  // 管理者ユーザーを作成または更新
+  await prisma.user.upsert({
+    where: {
+      email: '***@gmail.com',
+    },
+    update: {
+      name: '****',
+      role: 'admin',
+      org_id: organization.id,
+      updatedAt: new Date(),
+    },
+    create: {
+      name: '****',
+      email: '****@gmail.com',
+      role: 'admin',
+      org_id: organization.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  })
+}
+```
+
+```bash
+docker-compose exec app npm run db:migrate
+docker-compose exec app npm run db:seed
 ```
 
 ### シード値の適用について
@@ -232,6 +237,3 @@ Vercelを使用してデプロイすることを推奨します：
 2. 環境変数を設定
 3. デプロイを実行
 
-## ライセンス
-
-このプロジェクトは社内利用のみを許可します。
