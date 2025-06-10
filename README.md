@@ -15,7 +15,7 @@
 
 ## 必要な環境
 
-- Node.js: v18.17.0以上
+- Node.js: v18.18.0以上
 - PostgreSQL: v14以上
 - npm: v9.0.0以上
 - Docker: v20.10.0以上（Docker環境を使用する場合）
