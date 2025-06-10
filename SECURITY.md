@@ -46,4 +46,4 @@ main	✅
 
 株式会社Amu-Technology  
 島田迅人  
-[amu-lab.com]amu-lab.com
+[amu-lab.com](amu-lab.com)
