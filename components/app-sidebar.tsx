@@ -27,85 +27,33 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const baseNavItems = [
-  {
-    title: "ダッシュボード",
-    url: "/dashboard",
-    icon: IconDashboard,
-  },
-  {
-    title: "名簿管理",
-    icon: IconUserCheck,
-    children: [
-      {
-        title: "リード管理",
-        url: "/dashboard/leads",
-        icon: IconUserCheck,
-      },
-      {
-        title: "カレンダー",
-        url: "/dashboard/calendar",
-        icon: IconUserCheck,
-      },
-      {
-        title: "マップ表示",
-        url: "/dashboard/map",
-        icon: IconUserCheck,
-      },
-    ],
-  },
-  {
-    title: "実績管理",
-    icon: IconListDetails,
-    children: [
-      {
-        title: "実績記録",
-        url: "/dashboard/actions",
-        icon: IconListDetails,
-      },
-      {
-        title: "アクティビティ分析",
-        url: "/dashboard/analytics",
-        icon: IconChartBar,
-      },
-    ],
-  },
-  {
-    title: "設定",
-    icon: IconSettings,
-    children: [
-      {
-        title: "リードグループ設定",
-        url: "/dashboard/settings/groups",
-        icon: IconFolder,
-      },
-      {
-        title: "メモタイプ設定",
-        url: "/dashboard/settings/memotypes",
-        icon: IconFolder,
-      },
-      {
-        title: "アクティビティタイプ設定",
-        url: "/dashboard/settings/activity-types",
-        icon: IconFolder,
-      },
-    ],
-  },
-];
+type NavItem = {
+  title: string
+  url?: string
+  iconKey?: string
+  children?: NavItem[]
+}
 
-const adminNavItem = {
-  title: "システム管理",
-  icon: IconUsers,
-  children: [
-    {
-      title: "ユーザー管理",
-      url: "/dashboard/admin",
-      icon: IconUsers,
-    },
-  ],
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  baseNavItems: NavItem[]
+  adminNavItem: NavItem
+}
+
+const iconMap: Record<string, React.ReactNode> = {
+  dashboard: <IconDashboard />,
+  folder: <IconFolder />,
+  listDetails: <IconListDetails />,
+  users: <IconUsers />,
+  userCheck: <IconUserCheck />,
+  settings: <IconSettings />,
+  chartBar: <IconChartBar />,
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  baseNavItems,
+  adminNavItem,
+  ...props
+}: AppSidebarProps) {
   const { data: session } = useSession();
   const { user } = useUser();
 
