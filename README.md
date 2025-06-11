@@ -84,7 +84,10 @@ brew install --cask docker
 ```bash
 # コンテナのビルドと起動
 docker compose up -d --build
-
+# コンテナの停止
+docker compose down
+# コンテナの再起動
+docker compose restart
 # コンテナの状態確認
 docker compose ps
 
