@@ -49,13 +49,14 @@ model Organization {
 }
 
 model Group {
-  id             String       @id @default(cuid())
+  id             String         @id @default(cuid())
   name           String
   organizationId Int
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
   leads          LeadGroup[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  leadActivities LeadActivity[]
 }
 
 model Lead {
@@ -156,16 +157,18 @@ model Task {
 }
 
 model Event {
-  id             String       @id @default(cuid())
+  id             String         @id @default(cuid())
   organizationId Int
   title          String
   startDate      DateTime
   endDate        DateTime
   location       String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  leads          Lead[]
+  description    String?        // 説明フィールドを追加
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  leads          Lead[]         // 参加リード (任意)
+  leadActivities LeadActivity[] // イベントから生成された活動
 }
 
 model Memo {
@@ -216,7 +219,6 @@ model LeadGroup {
   organization   Organization @relation(fields: [organizationId], references: [id])
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-
   @@unique([leadId, groupId])
 }
 
@@ -256,7 +258,6 @@ model Payment {
   recordedById   String // 誰が記録したか
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
   lead         Lead          @relation(fields: [leadId], references: [id])
   organization Organization  @relation(fields: [organizationId], references: [id])
   recordedBy   User          @relation(fields: [recordedById], references: [id])
@@ -267,19 +268,24 @@ model Payment {
 model LeadActivity {
   id             String        @id @default(cuid())
   leadId         String
+  eventId        String?       // Eventとの関連キー
+  groupId        String?       // Groupとの関連キー
   organizationId Int
   lead           Lead          @relation(fields: [leadId], references: [id])
+  event          Event?        @relation(fields: [eventId], references: [id])
   type           String
   typeId         String
   activityType   ActivityType? @relation(fields: [typeId], references: [id])
-  description    String
+  description    String?       // 任意項目に変更
   organization   Organization  @relation(fields: [organizationId], references: [id])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
   paymentId String?  @unique
   payment   Payment? @relation(fields: [paymentId], references: [id])
+  group     Group?   @relation(fields: [groupId], references: [id])
 }
+
 
 model LeadStatusHistory {
   id             String       @id @default(cuid())

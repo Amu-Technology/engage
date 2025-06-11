@@ -6,7 +6,7 @@ WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl
 
 # 依存関係のインストール
-COPY package.json package-lock.json ./
+COPY package*.json ./
 COPY prisma ./prisma
 RUN npm install
 
@@ -23,5 +23,5 @@ RUN npx prisma generate
 # 起動スクリプトを指定
 ENTRYPOINT ["./entrypoint.sh"]
 
-# 開発サーバーの起動
+# デフォルトのコマンドとして開発サーバーを起動
 CMD ["npm", "run", "dev"]

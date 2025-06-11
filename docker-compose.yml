@@ -7,19 +7,20 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-      - "9229:9229"
+      - "9229:9229" # デバッグ用ポート
     volumes:
       - .:/app
       - /app/node_modules
     env_file:
       - .env.development
     depends_on:
-      - db
-    command: npm run dev
+      db:
+        condition: service_healthy # 修正を推奨
+    # command: npm run dev # この行を削除またはコメントアウト
     environment:
       - NODE_ENV=development
-      - NEXT_TELEMETRY_DISABLED=1
-      - PORT=3001
+      # - NEXT_TELEMETRY_DISABLED=1 # 必要に応じて
+      # - PORT=3001 # portは3000にマッピングしているので通常は不要
 
   db:
     image: postgres:14
@@ -29,6 +30,11 @@ services:
       - .env.development
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck: # データベースの準備が整うのを待つために追加
+      test: ["CMD-SHELL", "pg_isready -U postgres -d engage"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     image: dpage/pgadmin4
@@ -38,7 +44,8 @@ services:
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=admin
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
