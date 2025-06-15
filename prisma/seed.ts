@@ -125,6 +125,26 @@ async function main() {
       updatedAt: new Date(),
     },
   })
+
+    await prisma.user.upsert({
+    where: {
+      email: 'fhaimai2024@gmail.com',
+    },
+    update: {
+      name: '今井英',
+      role: 'admin',
+      org_id: organization.id,
+      updatedAt: new Date(),
+    },
+    create: {
+      name: '今井英',
+      email: 'fhaimai2024@gmail.com',
+      role: 'admin',
+      org_id: organization.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  })
 }
 
 main()
