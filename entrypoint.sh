@@ -15,3 +15,5 @@ npx prisma migrate deploy
 echo "Starting application..."
 # DockerfileのCMDで指定されたコマンド（npm run dev）を実行
 exec "$@"
+
+# windowsの場合はこのファイルの改行コードをLFにする
