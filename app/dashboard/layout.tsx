@@ -32,6 +32,7 @@ const baseNavItems: NavItem[] = [
     iconKey: "listDetails",
     children: [
       { title: "実績記録", url: "/dashboard/actions", iconKey: "listDetails" },
+      {title: "イベント管理", url: "/dashboard/events", iconKey: "listDetails"},
       { title: "アクティビティ分析", url: "/dashboard/analytics", iconKey: "chartBar" },
     ],
   },
