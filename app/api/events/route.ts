@@ -152,33 +152,44 @@ export async function POST(request: NextRequest) {
         endDate: new Date(endDate),
         location,
         description,
-        organizationId: user.org_id!,
-        // グループが指定されている場合は関連付け
-        ...(groupId && {
-          leadActivities: {
-            create: {
-              type: "EVENT",
-              typeId: "event",
-              description: title,
-              organizationId: user.org_id!,
-              lead: {
-                connect: {
-                  id: groupId
-                }
-              }
-            }
+        organization: {
+          connect: {
+            id: user.org_id!
           }
-        })
-      },
-      include: {
-        leadActivities: {
-          include: {
-            group: true,
-            lead: true,
-          },
-        },
-      },
+        }
+      }
     });
+
+    // グループが指定されている場合はLeadActivityを作成
+    if (groupId) {
+      // グループに所属するリードを取得
+      const groupLeads = await prisma.leadGroup.findMany({
+        where: {
+          groupId: groupId,
+          group: {
+            organizationId: user.org_id!
+          }
+        },
+        select: {
+          leadId: true
+        }
+      });
+
+      // 各リードに対してLeadActivityを作成
+      for (const { leadId } of groupLeads) {
+        await prisma.leadActivity.create({
+          data: {
+            type: "EVENT",
+            typeId: "default-イベント",
+            description: title,
+            organizationId: user.org_id!,
+            leadId: leadId,
+            groupId: groupId,
+            eventId: event.id
+          }
+        });
+      }
+    }
 
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
