@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 // イベントを取得
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
+      include: { organization: true },
     });
     if (!user?.org_id) {
       return NextResponse.json(
@@ -123,6 +125,7 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
+      include: { organization: true },
     });
     if (!user?.org_id) {
       return NextResponse.json(
@@ -141,57 +144,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newEvent = await prisma.$transaction(async (tx) => {
-      // 1. イベントを作成
-      const event = await tx.event.create({
-        data: {
-          title,
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
-          location,
-          description,
-          organizationId: user.org_id!,
-        },
-      });
-
-      // 2. グループが指定されていれば、所属リード全員に活動を記録
-      if (groupId) {
-        const leadsInGroup = await tx.leadGroup.findMany({
-          where: { groupId: groupId },
-          select: { leadId: true },
-        });
-
-        if (leadsInGroup.length > 0) {
-          const activityType = await tx.activityType.findFirst({
-            where: { name: "イベント参加", organizationId: user.org_id! },
-          });
-
-          if (!activityType) {
-            throw new Error(
-              "「イベント参加」のアクティビティタイプが見つかりません。"
-            );
+    // イベントを作成
+    const event = await prisma.event.create({
+      data: {
+        title,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        location,
+        description,
+        organizationId: user.org_id!,
+        // グループが指定されている場合は関連付け
+        ...(groupId && {
+          leadActivities: {
+            create: {
+              type: "EVENT",
+              typeId: "event",
+              description: title,
+              organizationId: user.org_id!,
+              lead: {
+                connect: {
+                  id: groupId
+                }
+              }
+            }
           }
-
-          const activitiesToCreate = leadsInGroup.map((lg) => ({
-            leadId: lg.leadId,
-            eventId: event.id,
-            groupId: groupId,
-            organizationId: user.org_id!,
-            type: activityType.name,
-            typeId: activityType.id,
-            description: `イベント「${title}」への参加`,
-          }));
-
-          await tx.leadActivity.createMany({
-            data: activitiesToCreate,
-          });
-        }
-      }
-
-      return event;
+        })
+      },
+      include: {
+        leadActivities: {
+          include: {
+            group: true,
+            lead: true,
+          },
+        },
+      },
     });
 
-    return NextResponse.json(newEvent, { status: 201 });
+    return NextResponse.json(event, { status: 201 });
   } catch (error) {
     console.error("イベント作成エラー:", error);
     if (error instanceof Error) {
