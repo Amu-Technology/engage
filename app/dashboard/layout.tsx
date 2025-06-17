@@ -1,16 +1,13 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { SiteHeader } from "@/components/site-header"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 type NavItem = {
-  title: string
-  url?: string
-  iconKey?: string
-  children?: NavItem[]
-}
+  title: string;
+  url?: string;
+  iconKey?: string;
+  children?: NavItem[];
+};
 
 const baseNavItems: NavItem[] = [
   {
@@ -32,17 +29,43 @@ const baseNavItems: NavItem[] = [
     iconKey: "listDetails",
     children: [
       { title: "実績記録", url: "/dashboard/actions", iconKey: "listDetails" },
-      {title: "イベント管理", url: "/dashboard/events", iconKey: "listDetails"},
-      { title: "アクティビティ分析", url: "/dashboard/analytics", iconKey: "chartBar" },
+      { title: "入金管理", url: "/dashboard/payments", iconKey: "listDetails" },
+      {
+        title: "イベント管理",
+        url: "/dashboard/events",
+        iconKey: "listDetails",
+      },
+      {
+        title: "アクティビティ分析",
+        url: "/dashboard/analytics",
+        iconKey: "chartBar",
+      },
     ],
   },
   {
     title: "設定",
     iconKey: "settings",
     children: [
-      { title: "リードグループ設定", url: "/dashboard/settings/groups", iconKey: "folder" },
-      { title: "メモタイプ設定", url: "/dashboard/settings/memotypes", iconKey: "folder" },
-      { title: "アクティビティタイプ設定", url: "/dashboard/settings/activity-types", iconKey: "folder" },
+      {
+        title: "リードグループ設定",
+        url: "/dashboard/settings/groups",
+        iconKey: "folder",
+      },
+      {
+        title: "メモタイプ設定",
+        url: "/dashboard/settings/memotypes",
+        iconKey: "folder",
+      },
+      {
+        title: "アクティビティタイプ設定",
+        url: "/dashboard/settings/activity-types",
+        iconKey: "folder",
+      },
+      {
+        title: "入金タイプ設定",
+        url: "/dashboard/settings/payment-types",
+        iconKey: "folder",
+      },
     ],
   },
 ];
@@ -55,11 +78,10 @@ const adminNavItem: NavItem = {
   ],
 };
 
-
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <SidebarProvider
@@ -76,10 +98,7 @@ export default function DashboardLayout({
         variant="inset"
       />
       <SidebarInset>
-        <SiteHeader
-          baseNavItems={baseNavItems}
-          adminNavItem={adminNavItem}
-        />
+        <SiteHeader baseNavItems={baseNavItems} adminNavItem={adminNavItem} />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             {children}
@@ -87,5 +106,5 @@ export default function DashboardLayout({
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
-} 
+  );
+}
