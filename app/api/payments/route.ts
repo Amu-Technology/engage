@@ -6,7 +6,6 @@ import { Prisma } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
-// 入金履歴を取得 (クエリパラメータで条件分岐)
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -14,32 +13,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user?.org_id) {
       return NextResponse.json({ error: '組織に所属していません' }, { status: 404 });
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const leadId = searchParams.get('leadId');
-    const leadIds = searchParams.getAll('leadIds'); // 複数IDに対応
-    const recordedById = searchParams.get('recordedById');
+    const paymentTypeId = searchParams.get('paymentTypeId');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
 
     const where: Prisma.PaymentWhereInput = {
       organizationId: user.org_id,
     };
 
-    if (leadId) {
-      where.leadId = leadId;
-    } else if (leadIds.length > 0) {
-      where.leadId = { in: leadIds };
+    if (paymentTypeId) {
+      where.paymentTypeId = paymentTypeId;
     }
 
-    if (recordedById) {
-      where.recordedById = recordedById;
+    // --- ここからが修正箇所 ---
+    if (startDate || endDate) {
+      where.paymentDate = {}; // まず空のオブジェクトとして初期化
+      if (startDate) {
+        where.paymentDate.gte = new Date(startDate); // gteプロパティを追加
+      }
+      if (endDate) {
+        where.paymentDate.lte = new Date(endDate); // lteプロパティを追加
+      }
     }
+    // --- ここまでが修正箇所 ---
     
     const payments = await prisma.payment.findMany({
       where,
@@ -59,7 +61,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
   }
 }
-
 // 新しい入金記録を作成
 export async function POST(request: NextRequest) {
   try {
