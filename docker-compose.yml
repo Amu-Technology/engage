@@ -1,58 +1,49 @@
-version: '3.8'
-
 services:
   app:
+    tty: true
+    networks:
+      - engage-network
     build:
       context: .
-      dockerfile: Dockerfile
     ports:
       - "3000:3000"
-      - "9229:9229" # デバッグ用ポート
+      - "5555:5555" # デバッグ用ポート
     volumes:
       - .:/app
       - /app/node_modules
     env_file:
-      - .env.development
+      - ./.env.development
     depends_on:
       db:
-        condition: service_healthy
-    # command: npm run dev # この行を削除またはコメントアウト
-    environment:
-      - NODE_ENV=development
-      # - NEXT_TELEMETRY_DISABLED=1 # 必要に応じて
-      # - PORT=3001 # portは3000にマッピングしているので通常は不要
+        condition: service_started
 
   db:
-    image: postgres:14
+    image: postgres:15
+    hostname: db
+    env_file:
+      - ./.env.development
     ports:
       - "5432:5432"
-    env_file:
-      - .env.development
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck: # データベースの準備が整うのを待つために追加
-      test: ["CMD-SHELL", "pg_isready -U postgres -d engage"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin4
-    ports:
-      - "5050:80"
+    networks:
+      - engage-network
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
-      - PGADMIN_CONFIG_SERVER_MODE=False
-      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+      - TZ=Asia/Tokyo
+      - POSTGRES_DB=engage
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
+      - db_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d
 
+networks:
+  engage-network:
+    driver: bridge
 volumes:
-  postgres_data:
-  pgadmin_data:
+  db_data:
+
+  # docker container exec -it engage-app-1 sh
+
+  # npm install
+  # npm run dev
+ 
