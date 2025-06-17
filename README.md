@@ -69,10 +69,6 @@ NEXTAUTH_SECRET=your-very-strong-and-secret-key-for-nextauth
 GOOGLE_CLIENT_ID=your-google-client-id-goes-here
 GOOGLE_CLIENT_SECRET=your-google-client-secret-goes-here
 
-# Docker Compose用データベース設定
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=mysecretpassword
-POSTGRES_DB=engage
 ```
 
 3. Dockerコンテナの起動
@@ -83,16 +79,10 @@ brew install --cask docker
 
 ```bash
 # コンテナのビルドと起動
-docker compose up -d --build
+docker compose up --build
 # コンテナの停止
-docker compose down
-# コンテナの再起動
-docker compose restart
-# コンテナの状態確認
-docker compose ps
+ctrl + C
 
-# ログの確認
-docker compose logs -f
 ```
 
 4. データベースのマイグレーションとシード  
@@ -123,14 +113,14 @@ NEXTAuth.jsで認証した後、データベースのuserテーブルに認証�
 ```
 5. マイグレーションとシード値の適用  
 ```bash
+# 別ターミナルでコンテナに入る
+docker container exec -it engage-app-1 sh
 # マイグレーションの実行
-docker compose exec app npx prisma migrate deploy
-
+npx prisma migrate deploy
 # シードデータの投入
-docker compose exec app npx prisma db seed
-
-# ログの確認
-docker-compose logs -f app
+npx prisma db seed
+# データベースの確認
+npx prisma studio
 ```
 6. アプリの実行  
 ログを確認してdockerの起動が確認できたら開発準備完了です。  
