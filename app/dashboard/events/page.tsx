@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
-import { Plus, Edit, Trash2 } from "lucide-react";
-import { format } from "date-fns";
-
-import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -16,15 +20,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EventForm } from "./components/EventForm";
+import EventCreateForm from "./components/EventCreateForm";
 
 interface FormattedEvent {
   id: string;
@@ -38,91 +36,81 @@ interface FormattedEvent {
 }
 
 export default function EventsPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<FormattedEvent | null>(null);
-
-  const { data: events, error, isLoading, mutate } = useSWR<FormattedEvent[]>('/api/events', fetcher);
-
-  const handleEdit = (event: FormattedEvent) => {
-    setSelectedEvent(event);
-    setIsFormOpen(true);
-  };
-  
-  const handleAddNew = () => {
-    setSelectedEvent(null);
-    setIsFormOpen(true);
-  };
+  const {
+    data: events,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<FormattedEvent[]>("/api/events", fetcher);
 
   const handleDelete = async (eventId: string) => {
     if (!confirm("このイベントを削除してもよろしいですか？")) return;
-
     try {
       const response = await fetch(`/api/events/${eventId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
-      if (!response.ok) {
-        throw new Error('イベントの削除に失敗しました');
-      }
-      toast.success('イベントを削除しました');
+      if (!response.ok) throw new Error("イベントの削除に失敗しました");
+      toast.success("イベントを削除しました");
       mutate();
-    } catch (err) {
-      console.error(err);
-      toast.error(err instanceof Error ? err.message : 'イベントの削除に失敗しました');
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "イベントの削除に失敗しました"
+      );
     }
   };
 
-  // --- ここからが修正箇所 ---
-
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading)
       return (
         <TableRow>
-          <TableCell colSpan={5} className="h-24 text-center">
+          <TableCell colSpan={5} className="text-center">
             読み込み中...
           </TableCell>
         </TableRow>
       );
-    }
-
-    if (error) {
+    if (error)
       return (
         <TableRow>
-          <TableCell colSpan={5} className="h-24 text-center text-red-500">
-            データの読み込み中にエラーが発生しました。
+          <TableCell colSpan={5} className="text-center text-red-500">
+            エラーが発生しました
           </TableCell>
         </TableRow>
       );
-    }
-
-    if (!events || events.length === 0) {
+    if (!events?.length)
       return (
         <TableRow>
-          <TableCell colSpan={5} className="h-24 text-center">
-            登録されているイベントはありません。
+          <TableCell colSpan={5} className="text-center">
+            イベントがありません
           </TableCell>
         </TableRow>
       );
-    }
 
     return events.map((event) => (
       <TableRow key={event.id}>
-        <TableCell className="font-medium">{event.title}</TableCell>
+        <TableCell>{event.title}</TableCell>
         <TableCell>
-          {format(new Date(event.startDate), "yyyy/MM/dd")} - {format(new Date(event.endDate), "yyyy/MM/dd")}
+          {format(new Date(event.startDate), "yyyy/MM/dd")} -{" "}
+          {format(new Date(event.endDate), "yyyy/MM/dd")}
         </TableCell>
         <TableCell>
           <div className="flex flex-wrap gap-1">
-            {event.relatedGroups.map(g => <Badge key={g.id} variant="secondary">{g.name}</Badge>)}
+            {event.relatedGroups.map((g: { id: string; name: string }) => (
+              <Badge key={g.id} variant="secondary">
+                {g.name}
+              </Badge>
+            ))}
           </div>
         </TableCell>
         <TableCell>{event.relatedLeads.length}名</TableCell>
         <TableCell className="text-right">
-           <Button variant="ghost" size="icon" onClick={() => handleEdit(event)}>
-             <Edit className="h-4 w-4" />
-           </Button>
-           <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDelete(event.id)}>
-             <Trash2 className="h-4 w-4" />
-           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-red-500"
+            onClick={() => handleDelete(event.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </TableCell>
       </TableRow>
     ));
@@ -130,23 +118,7 @@ export default function EventsPage() {
 
   return (
     <div className="container mx-auto p-4 space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">イベント管理</h1>
-        <Button onClick={handleAddNew}>
-          <Plus className="mr-2 h-4 w-4" />
-          新規イベント追加
-        </Button>
-      </div>
-
-      <EventForm
-        isOpen={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        onSuccess={() => {
-          setIsFormOpen(false);
-          mutate();
-        }}
-        event={selectedEvent}
-      />
+      <EventCreateForm />
 
       <Card>
         <CardHeader>
@@ -164,9 +136,7 @@ export default function EventsPage() {
                 <TableHead className="text-right">操作</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {renderContent()}
-            </TableBody>
+            <TableBody>{renderContent()}</TableBody>
           </Table>
         </CardContent>
       </Card>

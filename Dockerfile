@@ -1,27 +1,34 @@
+# ベースイメージをDebianベースのnode:18.18.0-slimに指定
 FROM node:18.18.0-slim
 
+# 作業ディレクトリを設定
 WORKDIR /app
 
-# OpenSSLのインストール
-RUN apt-get update -y && apt-get install -y openssl
+# パッケージリストを更新し、必要なビルドツールをインストール
+# apk -> apt-get に変更
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    g++ \
+    make \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
 
-# 依存関係のインストール
+# 依存関係のファイルを先にコピーしてキャッシュを有効活用
 COPY package*.json ./
 COPY prisma ./prisma
+
+# 依存関係をインストール
 RUN npm install
 
-# アプリケーションのコピー
+# アプリケーションの全ファイルをコピー
 COPY . .
 
-# 起動スクリプトをコピーして実行権限を付与
-COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
-
-# Prisma Clientの生成
+# Prisma Clientを生成
 RUN npx prisma generate
 
-# 起動スクリプトを指定
-ENTRYPOINT ["./entrypoint.sh"]
+# entrypoint.sh を使う場合は以下の行を有効化
+# COPY entrypoint.sh .
+# RUN chmod +x entrypoint.sh
+# ENTRYPOINT ["./entrypoint.sh"]
 
-# デフォルトのコマンドとして開発サーバーを起動
+# 開発サーバーを起動
 CMD ["npm", "run", "dev"]

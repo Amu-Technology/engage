@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 // イベントを取得
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
+      include: { organization: true },
     });
     if (!user?.org_id) {
       return NextResponse.json(
@@ -123,6 +125,7 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
+      include: { organization: true },
     });
     if (!user?.org_id) {
       return NextResponse.json(
@@ -141,57 +144,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newEvent = await prisma.$transaction(async (tx) => {
-      // 1. イベントを作成
-      const event = await tx.event.create({
-        data: {
-          title,
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
-          location,
-          description,
-          organizationId: user.org_id!,
-        },
-      });
-
-      // 2. グループが指定されていれば、所属リード全員に活動を記録
-      if (groupId) {
-        const leadsInGroup = await tx.leadGroup.findMany({
-          where: { groupId: groupId },
-          select: { leadId: true },
-        });
-
-        if (leadsInGroup.length > 0) {
-          const activityType = await tx.activityType.findFirst({
-            where: { name: "イベント参加", organizationId: user.org_id! },
-          });
-
-          if (!activityType) {
-            throw new Error(
-              "「イベント参加」のアクティビティタイプが見つかりません。"
-            );
+    // イベントを作成
+    const event = await prisma.event.create({
+      data: {
+        title,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        location,
+        description,
+        organization: {
+          connect: {
+            id: user.org_id!
           }
-
-          const activitiesToCreate = leadsInGroup.map((lg) => ({
-            leadId: lg.leadId,
-            eventId: event.id,
-            groupId: groupId,
-            organizationId: user.org_id!,
-            type: activityType.name,
-            typeId: activityType.id,
-            description: `イベント「${title}」への参加`,
-          }));
-
-          await tx.leadActivity.createMany({
-            data: activitiesToCreate,
-          });
         }
       }
-
-      return event;
     });
 
-    return NextResponse.json(newEvent, { status: 201 });
+    // グループが指定されている場合はLeadActivityを作成
+    if (groupId) {
+      // グループに所属するリードを取得
+      const groupLeads = await prisma.leadGroup.findMany({
+        where: {
+          groupId: groupId,
+          group: {
+            organizationId: user.org_id!
+          }
+        },
+        select: {
+          leadId: true
+        }
+      });
+
+      // 各リードに対してLeadActivityを作成
+      for (const { leadId } of groupLeads) {
+        await prisma.leadActivity.create({
+          data: {
+            type: "EVENT",
+            typeId: "default-イベント",
+            description: title,
+            organizationId: user.org_id!,
+            leadId: leadId,
+            groupId: groupId,
+            eventId: event.id
+          }
+        });
+      }
+    }
+
+    return NextResponse.json(event, { status: 201 });
   } catch (error) {
     console.error("イベント作成エラー:", error);
     if (error instanceof Error) {

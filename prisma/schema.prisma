@@ -251,7 +251,7 @@ model Payment {
   id             String   @id @default(cuid())
   amount         Int // 金額
   paymentDate    DateTime // 入金日
-  description    String? // 摘要
+  description    String? // メモ
   paymentTypeId  String? // PaymentTypeへの外部キー
   leadId         String // どのリードからの入金か
   organizationId Int // どの組織の入金か
