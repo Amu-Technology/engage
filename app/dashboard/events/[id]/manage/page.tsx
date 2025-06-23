@@ -5,10 +5,12 @@ import { ParticipantsList } from './participants-list';
 import { EventRegistrationForm } from './event-registration-form';
 
 interface EventManagementPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function EventManagementPage({ params }: EventManagementPageProps) {
+export default async function EventManagementPage({ params }: EventManagementPageProps) {
+  const { id } = await params;
+  
   return (
     <div className="min-h-screen bg-gray-50/50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -26,12 +28,12 @@ export default function EventManagementPage({ params }: EventManagementPageProps
         <div className="space-y-8">
           {/* イベント概要・統計 */}
           <Suspense fallback={<div className="animate-pulse bg-gray-200 h-48 rounded-lg"></div>}>
-            <EventManagementDashboard eventId={params.id} />
+            <EventManagementDashboard eventId={id} />
           </Suspense>
 
           {/* 参加状況サマリー */}
           <Suspense fallback={<div className="animate-pulse bg-gray-200 h-32 rounded-lg"></div>}>
-            <ParticipantsOverview eventId={params.id} />
+            <ParticipantsOverview eventId={id} />
           </Suspense>
 
           {/* 参加申込フォームと参加者一覧を横並びで表示 */}
@@ -39,14 +41,14 @@ export default function EventManagementPage({ params }: EventManagementPageProps
             {/* 参加申込フォーム */}
             <div>
               <Suspense fallback={<div className="animate-pulse bg-gray-200 h-96 rounded-lg"></div>}>
-                <EventRegistrationForm eventId={params.id} />
+                <EventRegistrationForm eventId={id} />
               </Suspense>
             </div>
 
             {/* 参加者一覧・管理 */}
             <div>
               <Suspense fallback={<div className="animate-pulse bg-gray-200 h-96 rounded-lg"></div>}>
-                <ParticipantsList eventId={params.id} />
+                <ParticipantsList eventId={id} />
               </Suspense>
             </div>
           </div>

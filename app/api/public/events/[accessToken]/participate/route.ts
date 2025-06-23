@@ -14,10 +14,10 @@ const publicParticipationSchema = z.object({
 // POST /api/public/events/[accessToken]/participate - 外部ユーザー参加申込（認証不要）
 export async function POST(
   request: NextRequest,
-  { params }: { params: { accessToken: string } }
+  { params }: { params: Promise<{ accessToken: string }> }
 ) {
   try {
-    const accessToken = params.accessToken;
+    const { accessToken } = await params;
     const body = await request.json();
 
     if (!accessToken) {

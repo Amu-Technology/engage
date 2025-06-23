@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/public/participation/[participationId]/status - 参加状況確認（認証不要）
 export async function GET(
   request: NextRequest,
-  { params }: { params: { participationId: string } }
+  { params }: { params: Promise<{ participationId: string }> }
 ) {
   try {
-    const participationId = params.participationId;
+    const { participationId } = await params;
 
     if (!participationId) {
       return NextResponse.json(

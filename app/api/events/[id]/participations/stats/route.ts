@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/events/[id]/participations/stats - 参加状況統計取得
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -25,7 +25,7 @@ export async function GET(
       );
     }
 
-    const eventId = params.id;
+    const { id: eventId } = await params;
 
     // イベントの存在確認と組織チェック
     const event = await prisma.event.findFirst({

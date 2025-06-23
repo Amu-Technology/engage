@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/public/events/[accessToken]/check-participation - 参加申込状況チェック
 export async function GET(
   request: NextRequest,
-  { params }: { params: { accessToken: string } }
+  { params }: { params: Promise<{ accessToken: string }> }
 ) {
   try {
-    const accessToken = params.accessToken;
+    const { accessToken } = await params;
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
 

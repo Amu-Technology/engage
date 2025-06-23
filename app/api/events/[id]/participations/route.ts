@@ -16,27 +16,24 @@ const createParticipationSchema = z.object({
 // GET /api/events/[id]/participations - 参加者一覧取得
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: { organization: true },
+      include: { organization: true }
     });
 
     if (!user?.org_id) {
-      return NextResponse.json(
-        { error: "組織に所属していません" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '組織に所属していません' }, { status: 404 });
     }
 
-    const eventId = params.id;
+    const { id: eventId } = await params;
 
     // イベントの存在確認と組織チェック
     const event = await prisma.event.findFirst({
@@ -83,6 +80,11 @@ export async function GET(
       responseDate: participation.responseDate,
       note: participation.note,
       isExternal: participation.isExternal,
+      leadId: participation.leadId,
+      participantName: participation.participantName,
+      participantEmail: participation.participantEmail,
+      participantPhone: participation.participantPhone,
+      lead: participation.lead,
       participant: participation.isExternal ? {
         name: participation.participantName,
         email: participation.participantEmail,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useUser } from "@/app/providers/UserProvider";
 
@@ -111,7 +111,7 @@ export default function LeadsPage() {
     { id: string; name: string; color: string | null }[]
   >([]);
 
-  const fetchLeads = useCallback(async () => {
+  const fetchLeads = async () => {
     try {
       const response = await fetch(`/api/leads?type=${activeTab}`);
       if (!response.ok) {
@@ -125,7 +125,13 @@ export default function LeadsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeTab]);
+  };
+
+  useEffect(() => {
+    if (!isUserLoading) {
+      fetchLeads();
+    }
+  }, [isUserLoading, activeTab]);
 
   const fetchGroups = async () => {
     try {
@@ -158,17 +164,11 @@ export default function LeadsPage() {
   };
 
   useEffect(() => {
-    if (!isUserLoading) {
-      fetchLeads();
-    }
-  }, [isUserLoading, activeTab, fetchLeads]);
-
-  useEffect(() => {
     fetchGroups();
     fetchLeadsStatuses();
   }, []);
 
-  const handleGroupChange = async (leadId: string, groupIds: string[]) => {
+  const handleGroupChange = async (leadId: string | string[], groupIds: string[]) => {
     try {
       // 単一のリードの場合
       if (typeof leadId === "string") {
@@ -195,11 +195,18 @@ export default function LeadsPage() {
 
         if (!response.ok) throw new Error("グループの更新に失敗しました");
 
-        // 更新されたリードの情報を取得
-        const updatedLeads = await fetch("/api/leads").then((res) =>
-          res.json()
+        // 個別にリードを更新するのではなく、現在のリードリストを更新
+        setLeads((prev) =>
+          prev.map((lead) => {
+            if (leadId.includes(lead.id)) {
+              return {
+                ...lead,
+                groups: groupIds.map(groupId => ({ id: `${lead.id}-${groupId}`, groupId }))
+              };
+            }
+            return lead;
+          })
         );
-        setLeads(updatedLeads);
       }
 
       toast.success("グループを更新しました");

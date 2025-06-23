@@ -12,28 +12,24 @@ const updateParticipationSchema = z.object({
 // PUT /api/events/[id]/participations/[participationId] - 参加状況変更
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; participationId: string } }
+  { params }: { params: Promise<{ id: string; participationId: string }> }
 ) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: { organization: true },
+      include: { organization: true }
     });
 
     if (!user?.org_id) {
-      return NextResponse.json(
-        { error: "組織に所属していません" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '組織に所属していません' }, { status: 404 });
     }
 
-    const eventId = params.id;
-    const participationId = params.participationId;
+    const { id: eventId, participationId } = await params;
     const body = await request.json();
 
     // バリデーション
@@ -187,28 +183,24 @@ export async function PUT(
 // DELETE /api/events/[id]/participations/[participationId] - 参加取消
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; participationId: string } }
+  { params }: { params: Promise<{ id: string; participationId: string }> }
 ) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: { organization: true },
+      include: { organization: true }
     });
 
     if (!user?.org_id) {
-      return NextResponse.json(
-        { error: "組織に所属していません" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '組織に所属していません' }, { status: 404 });
     }
 
-    const eventId = params.id;
-    const participationId = params.participationId;
+    const { id: eventId, participationId } = await params;
 
     // 参加記録の存在確認と組織チェック
     const participation = await prisma.eventParticipation.findFirst({

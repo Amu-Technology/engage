@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 // POST /api/public/participation/[participationId]/cancel - 参加申込のキャンセル
 export async function POST(
   request: NextRequest,
-  { params }: { params: { participationId: string } }
+  { params }: { params: Promise<{ participationId: string }> }
 ) {
   try {
-    const participationId = params.participationId;
+    const { participationId } = await params;
 
     if (!participationId) {
       return NextResponse.json(

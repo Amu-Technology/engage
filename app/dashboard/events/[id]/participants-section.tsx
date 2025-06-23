@@ -34,7 +34,7 @@ import {
   FilterIcon,
   UsersIcon 
 } from 'lucide-react';
-import useSWR, { mutate } from 'swr';
+import useSWR from 'swr';
 import { toast } from 'sonner';
 
 interface ParticipantsSectionProps {
@@ -125,9 +125,9 @@ export function ParticipantsSection({ eventId }: ParticipantsSectionProps) {
   // APIレスポンスが配列の場合のフォールバック処理
   const safeParticipants = Array.isArray(response) ? response : participants;
 
-  const handleStatusChange = async (participantId: string, newStatus: string) => {
+  const handleStatusChange = async (participationId: string, newStatus: string) => {
     try {
-      const response = await fetch(`/api/events/${eventId}/participations/${participantId}`, {
+      const response = await fetch(`/api/events/${eventId}/participations/${participationId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -139,12 +139,17 @@ export function ParticipantsSection({ eventId }: ParticipantsSectionProps) {
         throw new Error('ステータス更新に失敗しました');
       }
 
-      // データを再取得
-      mutate(`/api/events/${eventId}/participations`);
-      mutate(`/api/events/${eventId}/participations/stats`);
+      // データを再取得（エラーハンドリングを追加）
+      try {
+        // SWRの自動再検証に依存
+        window.location.reload();
+      } catch (reloadError) {
+        console.error('Reload error:', reloadError);
+      }
       
       toast.success('参加状況を更新しました');
-    } catch {
+    } catch (error) {
+      console.error('Status change error:', error);
       toast.error('更新に失敗しました');
     }
   };

@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 // イベント詳細を取得
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: '組織に所属していません' }, { status: 404 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     const event = await prisma.event.findFirst({
       where: {
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // イベントを更新
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -104,7 +104,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { 
       title, 
@@ -210,7 +210,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // イベントを削除
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -221,7 +221,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: '組織に所属していません' }, { status: 404 });
     }
     
-    const { id } = params;
+    const { id } = await params;
 
     await prisma.$transaction(async (tx) => {
         // 1. イベントに関連する活動履歴を削除
