@@ -34,11 +34,7 @@ export async function GET(request: NextRequest) {
 
     // グループIDでの絞り込み
     if (groupId) {
-      where.leadActivities = {
-        some: {
-          groupId: groupId,
-        },
-      };
+      where.groupId = groupId;
     }
 
     // リードIDでの絞り込み
@@ -56,13 +52,6 @@ export async function GET(request: NextRequest) {
         // イベントから生成された活動履歴を取得
         leadActivities: {
           include: {
-            // 活動履歴からグループ情報を取得
-            group: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
             // 活動履歴からリード情報を取得
             lead: {
               select: {
@@ -92,6 +81,13 @@ export async function GET(request: NextRequest) {
             }
           }
         },
+        // グループ情報を含める
+        group: {
+          select: {
+            id: true,
+            name: true,
+          }
+        }
       },
       orderBy: {
         startDate: "desc",
@@ -117,10 +113,12 @@ export async function GET(request: NextRequest) {
         { id: string; name: string; email: string | null }
       >();
 
+      // Eventのgroupを使用
+      if (event.group) {
+        groups.set(event.group.id, event.group);
+      }
+
       event.leadActivities.forEach((activity) => {
-        if (activity.group) {
-          groups.set(activity.group.id, activity.group);
-        }
         if (activity.lead) {
           leads.set(activity.lead.id, activity.lead);
         }
@@ -139,6 +137,7 @@ export async function GET(request: NextRequest) {
         isPublic: event.isPublic,
         createdAt: event.createdAt.toISOString(),
         updatedAt: event.updatedAt.toISOString(),
+        groupId: event.groupId,
         relatedGroups: Array.from(groups.values()),
         relatedLeads: Array.from(leads.values()),
         // 参加者統計情報を追加
@@ -228,6 +227,7 @@ export async function POST(request: NextRequest) {
         registrationEnd: registrationEnd ? new Date(registrationEnd) : null,
         isPublic: Boolean(isPublic),
         accessToken: isPublic && accessToken ? accessToken : null,
+        groupId: groupId || null,
         organization: {
           connect: {
             id: user.org_id!
@@ -260,7 +260,6 @@ export async function POST(request: NextRequest) {
             description: title,
             organizationId: user.org_id!,
             leadId: leadId,
-            groupId: groupId,
             eventId: event.id
           }
         });

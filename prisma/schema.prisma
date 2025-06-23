@@ -57,7 +57,7 @@ model Group {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   leads          LeadGroup[]
-  leadActivities LeadActivity[]
+  events         Event[]        // グループに関連するイベント
 }
 
 model Lead {
@@ -171,9 +171,14 @@ model Event {
   registrationEnd   DateTime?             // 申込終了日時
   isPublic          Boolean               @default(false) // 外部公開するか
   accessToken       String?               @unique // 外部アクセス用トークン
+  groupId           String?               // 対象グループ（送り状印刷対象）
+  participationFee  Int?                  // 参加費用（円）
+  requirements      String?               // 持参物・注意事項
+  contactInfo       String?               // 連絡先情報
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
   organization      Organization          @relation(fields: [organizationId], references: [id])
+  group             Group?                @relation(fields: [groupId], references: [id])
   leads             Lead[]                // 参加リード (任意)
   leadActivities    LeadActivity[]        // イベントから生成された活動
   participations    EventParticipation[]  // 参加状況管理
@@ -277,7 +282,6 @@ model LeadActivity {
   id             String        @id @default(cuid())
   leadId         String
   eventId        String?       // Eventとの関連キー
-  groupId        String?       // Groupとの関連キー
   organizationId Int
   lead           Lead          @relation(fields: [leadId], references: [id])
   event          Event?        @relation(fields: [eventId], references: [id])
@@ -291,9 +295,7 @@ model LeadActivity {
 
   paymentId String?  @unique
   payment   Payment? @relation(fields: [paymentId], references: [id])
-  group     Group?   @relation(fields: [groupId], references: [id])
 }
-
 
 model LeadStatusHistory {
   id             String       @id @default(cuid())

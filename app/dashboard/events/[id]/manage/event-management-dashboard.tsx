@@ -19,6 +19,7 @@ interface Event {
   date: string;
   location?: string;
   maxParticipants?: number;
+  groupId?: string;
   group: {
     name: string;
   };
@@ -40,6 +41,10 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
   console.log('EventManagementDashboard API Response:', event);
   console.log('EventManagementDashboard Error:', error);
   console.log('EventManagementDashboard Loading:', isLoading);
+  console.log('EventManagementDashboard Group Info:', {
+    groupId: event?.groupId,
+    groupName: event?.group?.name
+  });
 
   const handleCopyRegistrationLink = async () => {
     const registrationUrl = `${window.location.origin}/events/${eventId}/register`;

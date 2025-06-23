@@ -3,6 +3,7 @@ import { EventManagementDashboard } from './event-management-dashboard';
 import { ParticipantsOverview } from './participants-overview';
 import { ParticipantsList } from './participants-list';
 import { EventRegistrationForm } from './event-registration-form';
+import { ShippingLabels } from './shipping-labels';
 
 interface EventManagementPageProps {
   params: Promise<{ id: string }>;
@@ -34,6 +35,11 @@ export default async function EventManagementPage({ params }: EventManagementPag
           {/* 参加状況サマリー */}
           <Suspense fallback={<div className="animate-pulse bg-gray-200 h-32 rounded-lg"></div>}>
             <ParticipantsOverview eventId={id} />
+          </Suspense>
+
+          {/* 送り状印刷 */}
+          <Suspense fallback={<div className="animate-pulse bg-gray-200 h-48 rounded-lg"></div>}>
+            <ShippingLabels eventId={id} />
           </Suspense>
 
           {/* 参加申込フォームと参加者一覧を横並びで表示 */}

@@ -35,16 +35,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             participations: true
           }
         },
-        leadActivities: {
-          include: {
-            group: {
-              select: {
-                id: true,
-                name: true
-              }
-            }
-          },
-          take: 1 // 最初の1件のみ取得してグループ情報を取得
+        group: {
+          select: {
+            id: true,
+            name: true
+          }
         }
       }
     });
@@ -52,6 +47,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!event) {
       return NextResponse.json({ error: 'イベントが見つかりません' }, { status: 404 });
     }
+
+    console.log('イベント詳細API - イベントデータ:', {
+      id: event.id,
+      title: event.title,
+      groupId: event.groupId,
+      group: event.group ? { id: event.group.id, name: event.group.name } : null
+    });
 
     // レスポンス形式を整理
     const formattedEvent = {
@@ -67,8 +69,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       registrationEnd: event.registrationEnd?.toISOString() || null,
       isPublic: event.isPublic,
       accessToken: event.accessToken,
+      groupId: event.groupId,
       group: {
-        name: event.leadActivities[0]?.group?.name || '未分類'
+        name: event.group?.name || '未分類'
       },
       _count: {
         participations: event._count.participations
@@ -156,6 +159,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         registrationEnd: registrationEnd ? new Date(registrationEnd) : null,
         isPublic: Boolean(isPublic),
         accessToken: isPublic && accessToken ? accessToken : null,
+        groupId: groupId || null,
       }
     });
 
@@ -188,7 +192,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
               description: title,
               organizationId: user.org_id!,
               leadId: leadId,
-              groupId: groupId,
               eventId: id
             }
           });
