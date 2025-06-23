@@ -1,0 +1,238 @@
+// EventParticipation-Lead 紐付け機能のためのスキーマ拡張
+
+// 参加者-リード候補マッチング
+model ParticipantLeadMatch {
+  id               String                 @id @default(cuid())
+  participationId  String
+  leadId           String?                // 既存リードとのマッチング
+  organizationId   Int
+  
+  // マッチング情報
+  matchType        MatchType              // マッチング手法
+  confidence       Float                  // 信頼度 (0.0-1.0)
+  matchedFields    Json                   // マッチした項目詳細
+  
+  // 候補リードデータ（新規作成用）
+  candidateData    Json?                  // Lead作成用の候補データ
+  
+  // ステータス管理
+  status           MatchStatus            @default(PROPOSED)
+  reviewedBy       String?                // レビュー担当者
+  reviewedAt       DateTime?              // レビュー日時
+  mergedAt         DateTime?              // マージ実行日時
+  
+  // メタデータ
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  
+  // リレーション
+  participation    EventParticipation     @relation(fields: [participationId], references: [id], onDelete: Cascade)
+  lead             Lead?                  @relation(fields: [leadId], references: [id])
+  organization     Organization           @relation(fields: [organizationId], references: [id])
+  
+  @@unique([participationId, leadId])
+  @@index([organizationId, status])
+  @@index([confidence])
+}
+
+// マッチングタイプ
+enum MatchType {
+  EMAIL_EXACT      // メール完全一致
+  EMAIL_DOMAIN     // メールドメイン一致
+  NAME_EXACT       // 名前完全一致
+  NAME_FUZZY       // 名前類似
+  PHONE_EXACT      // 電話番号完全一致
+  PHONE_NORMALIZED // 電話番号正規化一致
+  ADDRESS_PARTIAL  // 住所部分一致
+  PATTERN_ML       // 機械学習パターン
+  MANUAL          // 手動マッチング
+}
+
+// マッチステータス
+enum MatchStatus {
+  PROPOSED        // 提案済み
+  REVIEWING       // レビュー中
+  APPROVED        // 承認済み
+  MERGED          // マージ完了
+  REJECTED        // 却下
+  AUTO_MERGED     // 自動マージ完了
+}
+
+// Lead候補データ（段階的変換用）
+model LeadCandidate {
+  id               String                 @id @default(cuid())
+  participationId  String                 @unique
+  organizationId   Int
+  
+  // 段階的データ構築
+  stage            CandidateStage         @default(INITIAL)
+  completeness     Float                  @default(0.0) // データ完成度
+  
+  // 候補データ
+  extractedData    Json                   // 参加申込から抽出
+  enhancedData     Json?                  // 追加収集データ
+  validatedData    Json?                  // 検証済みデータ
+  
+  // 重複チェック結果
+  duplicateChecks  Json?                  // 重複チェック結果
+  duplicateScore   Float?                 // 重複スコア
+  
+  // 変換ステータス
+  readyForLead     Boolean                @default(false)
+  blockers         Json?                  // 変換阻害要因
+  
+  // メタデータ
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  
+  // リレーション
+  participation    EventParticipation     @relation(fields: [participationId], references: [id], onDelete: Cascade)
+  organization     Organization           @relation(fields: [organizationId], references: [id])
+  
+  @@index([organizationId, stage])
+  @@index([readyForLead])
+  @@index([completeness])
+}
+
+// 候補段階
+enum CandidateStage {
+  INITIAL         // 初期データ
+  ENHANCED        // データ拡張済み
+  VALIDATED       // 検証済み
+  READY           // Lead化準備完了
+  CONVERTED       // Lead変換完了
+}
+
+// データマージ履歴
+model MergeHistory {
+  id               String                 @id @default(cuid())
+  organizationId   Int
+  
+  // マージ操作情報
+  operationType    MergeType
+  sourceType       String                 // EventParticipation | Lead
+  sourceId         String
+  targetType       String                 // Lead
+  targetId         String
+  
+  // マージデータ
+  mergedData       Json                   // マージ後データ
+  rollbackData     Json                   // ロールバック用データ
+  
+  // 実行情報
+  executedBy       String                 // 実行者
+  executedAt       DateTime               @default(now())
+  
+  // ステータス
+  status           MergeHistoryStatus     @default(EXECUTED)
+  rollbackReason   String?
+  rolledBackAt     DateTime?
+  rolledBackBy     String?
+  
+  // リレーション
+  organization     Organization           @relation(fields: [organizationId], references: [id])
+  
+  @@index([organizationId, executedAt])
+  @@index([sourceId, sourceType])
+  @@index([targetId, targetType])
+}
+
+// マージタイプ
+enum MergeType {
+  PARTICIPANT_TO_LEAD      // 参加者→Lead変換
+  PARTICIPANT_TO_EXISTING  // 参加者→既存Lead統合
+  LEAD_MERGE              // Lead同士のマージ
+  DATA_ENHANCEMENT        // データ拡張
+}
+
+// マージ履歴ステータス
+enum MergeHistoryStatus {
+  EXECUTED        // 実行済み
+  ROLLED_BACK     // ロールバック済み
+  FAILED          // 失敗
+}
+
+// 参加者関係性グラフ
+model ParticipantRelationship {
+  id                    String                 @id @default(cuid())
+  organizationId        Int
+  
+  // 関係性情報
+  primaryParticipationId   String
+  relatedParticipationId   String
+  relationshipType      RelationshipType
+  
+  // 強度・信頼度
+  strength              Float                  // 関係性の強さ
+  confidence            Float                  // 信頼度
+  
+  // 検出情報
+  detectedBy            DetectionMethod        // 検出方法
+  evidence              Json                   // 根拠データ
+  detectedAt            DateTime               @default(now())
+  
+  // 検証情報
+  verified              Boolean                @default(false)
+  verifiedBy            String?
+  verifiedAt            DateTime?
+  
+  // リレーション
+  primaryParticipation  EventParticipation     @relation("PrimaryRelation", fields: [primaryParticipationId], references: [id], onDelete: Cascade)
+  relatedParticipation  EventParticipation     @relation("RelatedRelation", fields: [relatedParticipationId], references: [id], onDelete: Cascade)
+  organization          Organization           @relation(fields: [organizationId], references: [id])
+  
+  @@unique([primaryParticipationId, relatedParticipationId])
+  @@index([organizationId, relationshipType])
+  @@index([strength])
+}
+
+// 関係性タイプ
+enum RelationshipType {
+  FAMILY          // 家族
+  COLLEAGUE       // 同僚
+  COMPANION       // 同伴者
+  REFERRER        // 紹介者
+  SAME_PERSON     // 同一人物
+  FREQUENT_PAIR   // 頻繁ペア
+}
+
+// 検出方法
+enum DetectionMethod {
+  SAME_EMAIL      // 同一メール
+  SAME_PHONE      // 同一電話
+  SAME_ADDRESS    // 同一住所
+  NAME_SIMILARITY // 名前類似
+  TEMPORAL_PATTERN // 時系列パターン
+  MANUAL_INPUT    // 手動入力
+  ML_DETECTION    // 機械学習検出
+}
+
+// EventParticipationにリレーション追加
+model EventParticipation {
+  // ... 既存フィールド ...
+  
+  // 新規リレーション
+  leadMatches           ParticipantLeadMatch[]
+  candidateProfile      LeadCandidate?
+  primaryRelationships  ParticipantRelationship[] @relation("PrimaryRelation")
+  relatedRelationships  ParticipantRelationship[] @relation("RelatedRelation")
+}
+
+// Leadにリレーション追加
+model Lead {
+  // ... 既存フィールド ...
+  
+  // 新規リレーション
+  participantMatches    ParticipantLeadMatch[]
+}
+
+// Organizationにリレーション追加
+model Organization {
+  // ... 既存フィールド ...
+  
+  // 新規リレーション
+  participantMatches    ParticipantLeadMatch[]
+  leadCandidates        LeadCandidate[]
+  mergeHistories        MergeHistory[]
+  relationships         ParticipantRelationship[]
+}

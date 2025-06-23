@@ -43,6 +43,7 @@ model Organization {
   leadActivities          LeadActivity[]
   leadStatusHistories     LeadStatusHistory[]
   paymentTypes            PaymentType[]
+  eventParticipations     EventParticipation[]
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   Payment                 Payment[]
@@ -95,6 +96,7 @@ model Lead {
   memos                   Memo[]
   activities              LeadActivity[]
   statusHistory           LeadStatusHistory[]
+  eventParticipations     EventParticipation[]
   Payment                 Payment[]
 }
 
@@ -157,18 +159,24 @@ model Task {
 }
 
 model Event {
-  id             String         @id @default(cuid())
-  organizationId Int
-  title          String
-  startDate      DateTime
-  endDate        DateTime
-  location       String?
-  description    String?        // 説明フィールドを追加
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  organization   Organization   @relation(fields: [organizationId], references: [id])
-  leads          Lead[]         // 参加リード (任意)
-  leadActivities LeadActivity[] // イベントから生成された活動
+  id                String                @id @default(cuid())
+  organizationId    Int
+  title             String
+  startDate         DateTime
+  endDate           DateTime
+  location          String?
+  description       String?               // 説明フィールドを追加
+  maxParticipants   Int?                  // 最大参加者数
+  registrationStart DateTime?             // 申込開始日時
+  registrationEnd   DateTime?             // 申込終了日時
+  isPublic          Boolean               @default(false) // 外部公開するか
+  accessToken       String?               @unique // 外部アクセス用トークン
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  organization      Organization          @relation(fields: [organizationId], references: [id])
+  leads             Lead[]                // 参加リード (任意)
+  leadActivities    LeadActivity[]        // イベントから生成された活動
+  participations    EventParticipation[]  // 参加状況管理
 }
 
 model Memo {
@@ -299,4 +307,39 @@ model LeadStatusHistory {
   organization   Organization @relation(fields: [organizationId], references: [id])
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+}
+
+// イベント参加管理テーブル
+model EventParticipation {
+  id               String                   @id @default(cuid())
+  eventId          String
+  leadId           String?                  // 内部リード（任意）
+  organizationId   Int
+  participantName  String                   // 参加者名（外部ユーザー対応）
+  participantEmail String?                  // 参加者メール
+  participantPhone String?                  // 参加者電話番号
+  participantAddress String?                // 参加者住所
+  status           EventParticipationStatus @default(PENDING) // 参加状況
+  responseDate     DateTime?                // 返信日時
+  registeredAt     DateTime                 @default(now()) // 申込日時
+  note             String?                  // メモ
+  isExternal       Boolean                  @default(false) // 外部ユーザーか
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  
+  event        Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  lead         Lead?        @relation(fields: [leadId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  
+  @@unique([eventId, leadId]) // 同一イベント・リードの重複防止
+  @@unique([eventId, participantEmail]) // 同一イベント・メールの重複防止
+}
+
+// 参加状況の列挙型
+enum EventParticipationStatus {
+  PENDING     // 返信待ち
+  CONFIRMED   // 参加確定
+  DECLINED    // 不参加
+  CANCELLED   // キャンセル
+  WAITLIST    // キャンセル待ち
 }

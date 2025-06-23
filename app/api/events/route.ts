@@ -73,11 +73,40 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        // 参加者情報を含める
+        participations: {
+          where: { status: 'CONFIRMED' },
+          take: 5, // 最新5件のみ表示用
+          orderBy: { registeredAt: 'desc' },
+          select: {
+            id: true,
+            participantName: true,
+            participantEmail: true,
+            isExternal: true,
+            lead: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              }
+            }
+          }
+        },
       },
       orderBy: {
         startDate: "desc",
       },
     });
+
+    // 参加者数を別途取得
+    const participationCounts = await Promise.all(
+      events.map(async (event) => {
+        const count = await prisma.eventParticipation.count({
+          where: { eventId: event.id }
+        });
+        return { eventId: event.id, count };
+      })
+    );
 
     // 取得したデータを整形する
     const formattedEvents = events.map((event) => {
@@ -97,21 +126,51 @@ export async function GET(request: NextRequest) {
         }
       });
 
+      const participationCount = participationCounts.find(p => p.eventId === event.id)?.count || 0;
+
       return {
-        ...event,
-        leadActivities: undefined, // 整形後は不要なため削除
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        startDate: event.startDate.toISOString(),
+        endDate: event.endDate.toISOString(),
+        location: event.location,
+        maxParticipants: event.maxParticipants,
+        isPublic: event.isPublic,
+        createdAt: event.createdAt.toISOString(),
+        updatedAt: event.updatedAt.toISOString(),
         relatedGroups: Array.from(groups.values()),
         relatedLeads: Array.from(leads.values()),
+        // 参加者統計情報を追加
+        participationStats: {
+          totalParticipants: participationCount,
+          confirmedParticipants: event.participations.length,
+          availableSpots: event.maxParticipants 
+            ? Math.max(0, event.maxParticipants - event.participations.length)
+            : null,
+        },
+        recentParticipants: event.participations.map((p) => ({
+          id: p.id,
+          name: p.isExternal ? p.participantName : p.lead?.name || '',
+          email: p.isExternal ? p.participantEmail : p.lead?.email,
+          isExternal: p.isExternal,
+        })),
       };
     });
 
+    console.log(`API Response: Returning ${formattedEvents.length} events`);
     return NextResponse.json(formattedEvents);
   } catch (error) {
     console.error("イベント取得エラー:", error);
-    return NextResponse.json(
-      { error: "サーバーエラーが発生しました" },
-      { status: 500 }
-    );
+    
+    // エラー時も空配列を返却してフロントエンドのクラッシュを防ぐ
+    return NextResponse.json([], { 
+      status: 200,
+      headers: {
+        'X-Error': 'Database error occurred',
+        'X-Error-Message': error instanceof Error ? error.message : 'Unknown error'
+      }
+    });
   }
 }
 
@@ -135,7 +194,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, startDate, endDate, location, description, groupId } = body;
+    const { 
+      title, 
+      startDate, 
+      endDate, 
+      location, 
+      description, 
+      groupId,
+      maxParticipants,
+      registrationStart,
+      registrationEnd,
+      isPublic,
+      accessToken
+    } = body;
 
     if (!title || !startDate || !endDate) {
       return NextResponse.json(
@@ -152,6 +223,11 @@ export async function POST(request: NextRequest) {
         endDate: new Date(endDate),
         location,
         description,
+        maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+        registrationStart: registrationStart ? new Date(registrationStart) : null,
+        registrationEnd: registrationEnd ? new Date(registrationEnd) : null,
+        isPublic: Boolean(isPublic),
+        accessToken: isPublic && accessToken ? accessToken : null,
         organization: {
           connect: {
             id: user.org_id!
