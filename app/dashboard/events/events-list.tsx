@@ -66,14 +66,14 @@ export function EventsList() {
         {[...Array(6)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardHeader>
-              <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-muted rounded w-1/2"></div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded w-4/5"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-muted rounded"></div>
+                <div className="h-4 bg-muted rounded w-4/5"></div>
+                <div className="h-10 bg-muted rounded"></div>
               </div>
             </CardContent>
           </Card>
@@ -88,8 +88,8 @@ export function EventsList() {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <p className="text-red-600">イベント一覧を取得できませんでした</p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-destructive">イベント一覧を取得できませんでした</p>
+          <p className="text-sm text-muted-foreground mt-2">
             エラー詳細: {error?.message || 'データの読み込みに失敗しました'}
           </p>
         </CardContent>
@@ -103,8 +103,8 @@ export function EventsList() {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <p className="text-red-600">データ形式エラー</p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-destructive">データ形式エラー</p>
+          <p className="text-sm text-muted-foreground mt-2">
             APIから配列以外のデータが返却されました
           </p>
         </CardContent>
@@ -116,10 +116,10 @@ export function EventsList() {
     return (
       <Card>
         <CardContent className="p-12 text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-foreground mb-2">
             まだイベントがありません
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             新しいイベントを作成して参加者の管理を始めましょう
           </p>
           <Button asChild>
@@ -154,7 +154,7 @@ export function EventsList() {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 mb-2">
+                  <h3 className="font-semibold text-lg text-foreground line-clamp-2 mb-2">
                     {event.title}
                   </h3>
                   <div className="flex items-center gap-2">
@@ -167,7 +167,7 @@ export function EventsList() {
                       <Badge variant="destructive" className="text-xs">終了済み</Badge>
                     )}
                     {isEventFull && !isEventPast && (
-                      <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
+                      <Badge variant="secondary" className="text-xs">
                         満員
                       </Badge>
                     )}
@@ -179,7 +179,7 @@ export function EventsList() {
             <CardContent className="space-y-4">
               {/* イベント基本情報 */}
               <div className="space-y-2 text-sm">
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-muted-foreground">
                   <CalendarIcon className="h-4 w-4 mr-2" />
                   <span>
                     {eventDate.toLocaleDateString('ja-JP', {
@@ -196,13 +196,13 @@ export function EventsList() {
                 </div>
 
                 {event.location && (
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center text-muted-foreground">
                     <MapPinIcon className="h-4 w-4 mr-2" />
                     <span className="truncate">{event.location}</span>
                   </div>
                 )}
 
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-muted-foreground">
                   <UsersIcon className="h-4 w-4 mr-2" />
                   <span>
                     参加者: {event.participationStats.confirmedParticipants}
@@ -217,7 +217,7 @@ export function EventsList() {
                 {event.maxParticipants && (
                   <div>
                     <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-gray-600">定員充足率</span>
+                      <span className="text-muted-foreground">定員充足率</span>
                       <span className="font-medium">
                         {Math.round(capacityPercentage)}%
                       </span>
@@ -230,7 +230,7 @@ export function EventsList() {
                 {event.participationStats.totalParticipants > 0 && (
                   <div>
                     <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-gray-600">参加確定率</span>
+                      <span className="text-muted-foreground">参加確定率</span>
                       <span className="font-medium">
                         {Math.round(participationRate)}%
                       </span>
@@ -241,17 +241,17 @@ export function EventsList() {
 
                 {/* 参加状況サマリー */}
                 <div className="grid grid-cols-2 gap-1 text-xs">
-                  <div className="text-center p-2 bg-green-50 rounded">
-                    <div className="font-bold text-green-700">
+                  <div className="text-center p-2 bg-green-50 dark:bg-green-950 rounded">
+                    <div className="font-bold text-green-700 dark:text-green-300">
                       {event.participationStats.confirmedParticipants}
                     </div>
-                    <div className="text-green-600">参加確定</div>
+                    <div className="text-green-600 dark:text-green-400">参加確定</div>
                   </div>
-                  <div className="text-center p-2 bg-blue-50 rounded">
-                    <div className="font-bold text-blue-700">
+                  <div className="text-center p-2 bg-blue-50 dark:bg-blue-950 rounded">
+                    <div className="font-bold text-blue-700 dark:text-blue-300">
                       {event.participationStats.totalParticipants - event.participationStats.confirmedParticipants}
                     </div>
-                    <div className="text-blue-600">その他</div>
+                    <div className="text-blue-600 dark:text-blue-400">その他</div>
                   </div>
                 </div>
               </div>

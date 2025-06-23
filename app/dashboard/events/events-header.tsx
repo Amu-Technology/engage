@@ -38,8 +38,8 @@ export function EventsHeader({ onSearch, onFilter }: EventsHeaderProps) {
       {/* メインヘッダー */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">イベント管理</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-foreground">イベント管理</h1>
+          <p className="text-muted-foreground mt-1">
             イベントの作成・管理と参加者の状況確認ができます
           </p>
         </div>
@@ -58,7 +58,7 @@ export function EventsHeader({ onSearch, onFilter }: EventsHeaderProps) {
           <div className="flex flex-col sm:flex-row gap-4">
             {/* 検索バー */}
             <div className="relative flex-1">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="イベントタイトル・場所で検索..."
                 value={searchQuery}

@@ -83,15 +83,15 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
       <Card>
         <CardHeader>
           <div className="animate-pulse space-y-2">
-            <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-6 bg-muted rounded w-3/4"></div>
+            <div className="h-4 bg-muted rounded w-1/2"></div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-3">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-            <div className="h-10 bg-gray-200 rounded w-32"></div>
+            <div className="h-4 bg-muted rounded"></div>
+            <div className="h-4 bg-muted rounded w-5/6"></div>
+            <div className="h-10 bg-muted rounded w-32"></div>
           </div>
         </CardContent>
       </Card>
@@ -102,19 +102,19 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <p className="text-red-600">イベント情報を取得できませんでした</p>
+          <p className="text-destructive">イベント情報を取得できませんでした</p>
           {error && (
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-muted-foreground mt-2">
               エラー詳細: {error.message || 'データの読み込みに失敗しました'}
             </p>
           )}
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             イベントID: {eventId}
           </p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             ローディング状態: {isLoading ? '読み込み中' : '完了'}
           </p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             データ: {event ? '存在' : 'なし'}
           </p>
           <div className="mt-4">

@@ -4,10 +4,10 @@ import { EventsHeader } from './events-header';
 
 export default function EventsPage() {
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* ページヘッダー */}
-        <Suspense fallback={<div className="animate-pulse bg-gray-200 h-16 rounded-lg mb-8"></div>}>
+        <Suspense fallback={<div className="animate-pulse bg-muted h-16 rounded-lg mb-8"></div>}>
           <EventsHeader />
         </Suspense>
 
@@ -15,7 +15,7 @@ export default function EventsPage() {
         <Suspense fallback={
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="animate-pulse bg-gray-200 h-64 rounded-lg"></div>
+              <div key={i} className="animate-pulse bg-muted h-64 rounded-lg"></div>
             ))}
           </div>
         }>
