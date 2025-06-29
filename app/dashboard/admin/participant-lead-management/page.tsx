@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,14 +27,11 @@ import {
 import { toast } from 'sonner';
 import { 
   Users, 
-  Link as LinkIcon, 
   UserPlus, 
   Search,
   RefreshCw,
   CheckCircle,
   XCircle,
-  Clock,
-  ArrowRight,
   Settings
 } from 'lucide-react';
 import useSWR from 'swr';
@@ -72,7 +69,11 @@ interface MatchCandidate {
   };
   matchType: string;
   confidence: number;
-  matchedFields: any;
+  matchedFields: {
+    name: string;
+    email: string;
+    phone: string;
+  };
   status: string;
 }
 
@@ -90,9 +91,13 @@ export default function ParticipantLeadManagementPage() {
   } | null>(null);
 
   // 参加者データ取得
-  const { data: participationsData, error, mutate } = useSWR<{
+  const { data: participationsData, mutate } = useSWR<{
     participations: Participation[];
-    pagination: any;
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+    };
   }>(`/api/admin/participant-lead-management?status=${statusFilter}&eventId=${eventFilter}`, fetcher);
 
   // イベント一覧取得
@@ -127,7 +132,7 @@ export default function ParticipantLeadManagementPage() {
       toast.success(`${result.summary.totalCandidatesFound}件のマッチング候補を発見しました`);
       mutate();
       setSelectedParticipations([]);
-    } catch (error) {
+    } catch {
       toast.error('マッチング分析に失敗しました');
     } finally {
       setIsAnalyzing(false);
@@ -154,13 +159,18 @@ export default function ParticipantLeadManagementPage() {
       mutate();
       setSelectedMatch(null);
       setShowMergeDialog(false);
-    } catch (error) {
+    } catch {
       toast.error('操作に失敗しました');
     }
   };
 
   // 新規Lead作成
-  const handleCreateLead = async (participationId: string, leadData: any) => {
+  const handleCreateLead = async (participationId: string, leadData: {
+    name: string;
+    email: string;
+    phone: string;
+    status: string;
+  }) => {
     try {
       const response = await fetch('/api/admin/participant-lead-management/create-lead', {
         method: 'POST',
@@ -179,7 +189,7 @@ export default function ParticipantLeadManagementPage() {
       const result = await response.json();
       toast.success(result.message);
       mutate();
-    } catch (error) {
+    } catch {
       toast.error('Lead作成に失敗しました');
     }
   };
@@ -191,16 +201,7 @@ export default function ParticipantLeadManagementPage() {
     return 'bg-red-100 text-red-800';
   };
 
-  // マッチタイプのラベル
-  const getMatchTypeLabel = (type: string) => {
-    const labels = {
-      EMAIL_EXACT: 'メール完全一致',
-      PHONE_EXACT: '電話番号一致',
-      NAME_FUZZY: '名前類似',
-      PATTERN_ML: 'パターン分析',
-    };
-    return labels[type] || type;
-  };
+
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -239,7 +240,7 @@ export default function ParticipantLeadManagementPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">全てのイベント</SelectItem>
-                {eventsData?.map((event: any) => (
+                {eventsData?.map((event: { id: string; title: string }) => (
                   <SelectItem key={event.id} value={event.id}>
                     {event.title}
                   </SelectItem>
@@ -285,11 +286,7 @@ export default function ParticipantLeadManagementPage() {
           <CardTitle>未紐付け参加者一覧</CardTitle>
         </CardHeader>
         <CardContent>
-          {error ? (
-            <div className="text-center py-8">
-              <p className="text-red-600">データの読み込みに失敗しました</p>
-            </div>
-          ) : !participations.length ? (
+          {!participations.length ? (
             <div className="text-center py-8">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">未紐付けの参加者はありません</p>
@@ -424,8 +421,8 @@ export default function ParticipantLeadManagementPage() {
                             // 新規Lead作成ダイアログを開く
                             const leadData = {
                               name: participation.participantName,
-                              email: participation.participantEmail,
-                              phone: participation.participantPhone,
+                              email: participation.participantEmail || '',
+                              phone: participation.participantPhone || '',
                               status: 'potential',
                             };
                             handleCreateLead(participation.id, leadData);

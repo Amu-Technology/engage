@@ -24,7 +24,7 @@ export function EventActions({ eventId }: EventActionsProps) {
     try {
       await navigator.clipboard.writeText(registrationUrl);
       toast.success('参加申込URLをコピーしました');
-    } catch (error) {
+    } catch {
       toast.error('URLのコピーに失敗しました');
     }
   };
@@ -50,7 +50,7 @@ export function EventActions({ eventId }: EventActionsProps) {
       document.body.removeChild(a);
       
       toast.success('参加者データをエクスポートしました');
-    } catch (error) {
+    } catch {
       toast.error('エクスポートに失敗しました');
     }
   };

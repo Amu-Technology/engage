@@ -37,7 +37,7 @@ export function AccessTokenGenerator({ eventId }: AccessTokenGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
-  const { data: accessToken, error, isLoading } = useSWR<AccessToken>(
+  const { data: accessToken, isLoading } = useSWR<AccessToken>(
     `/api/events/${eventId}/access-token`,
     fetcher
   );
@@ -60,7 +60,7 @@ export function AccessTokenGenerator({ eventId }: AccessTokenGeneratorProps) {
       mutate(`/api/events/${eventId}/access-token`);
       toast.success('外部申込URLを生成しました');
       
-    } catch (error) {
+    } catch {
       toast.error('アクセストークン生成に失敗しました');
     } finally {
       setIsGenerating(false);
@@ -85,7 +85,7 @@ export function AccessTokenGenerator({ eventId }: AccessTokenGeneratorProps) {
       mutate(`/api/events/${eventId}/access-token`);
       toast.success('外部申込URLを再生成しました');
       
-    } catch (error) {
+    } catch {
       toast.error('アクセストークン再生成に失敗しました');
     } finally {
       setIsRegenerating(false);
@@ -96,7 +96,7 @@ export function AccessTokenGenerator({ eventId }: AccessTokenGeneratorProps) {
     try {
       await navigator.clipboard.writeText(text);
       toast.success('URLをコピーしました');
-    } catch (error) {
+    } catch {
       toast.error('コピーに失敗しました');
     }
   };

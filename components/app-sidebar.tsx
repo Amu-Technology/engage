@@ -39,16 +39,6 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   adminNavItem: NavItem
 }
 
-const iconMap: Record<string, React.ReactNode> = {
-  dashboard: <IconDashboard />,
-  folder: <IconFolder />,
-  listDetails: <IconListDetails />,
-  users: <IconUsers />,
-  userCheck: <IconUserCheck />,
-  settings: <IconSettings />,
-  chartBar: <IconChartBar />,
-};
-
 export function AppSidebar({
   baseNavItems,
   adminNavItem,
