@@ -46,13 +46,13 @@ export async function POST(request: NextRequest) {
     const participation = await prisma.eventParticipation.findFirst({
       where: {
         id: participationId,
-        organizationId: user.org_id,
+        organizationId: user.org_id!,
         isExternal: true,
         leadId: null, // まだ紐付けされていない
       },
       include: {
-        candidateProfile: true,
         event: true,
+        candidateProfile: true,
       },
     });
 
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     // 重複チェック
     const existingLead = await prisma.lead.findFirst({
       where: {
-        organizationId: user.org_id,
+        organizationId: user.org_id!,
         OR: [
           { email: leadData.email },
           { name: leadData.name, phone: leadData.phone },
@@ -91,7 +91,6 @@ export async function POST(request: NextRequest) {
     }
 
     let newLead;
-    let mergeHistory;
 
     await prisma.$transaction(async (tx) => {
       // 参加者データとマージしてLead作成
@@ -103,12 +102,11 @@ export async function POST(request: NextRequest) {
         company: leadData.company,
         position: leadData.position,
         status: leadData.status,
-        organizationId: user.org_id,
-        // 参加者データから推測される追加情報
+        organizationId: user.org_id!,
         referrer: `イベント参加: ${participation.event.title}`,
       } : {
         ...leadData,
-        organizationId: user.org_id,
+        organizationId: user.org_id!,
       };
 
       // Lead作成
@@ -134,44 +132,14 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // マージ履歴記録
-      mergeHistory = await tx.mergeHistory.create({
-        data: {
-          organizationId: user.org_id,
-          operationType: "PARTICIPANT_TO_LEAD",
-          sourceType: "EventParticipation",
-          sourceId: participationId,
-          targetType: "Lead",
-          targetId: newLead.id,
-          mergedData: {
-            action: "create_lead_from_participation",
-            participationData: participation,
-            leadData: mergedLeadData,
-            mergeExistingData,
-          },
-          rollbackData: {
-            leadId: newLead.id,
-            participationId,
-          },
-          executedBy: user.id,
-          status: "EXECUTED",
-        },
-      });
-
       // イベント参加のLeadActivity作成
       await tx.leadActivity.create({
         data: {
           leadId: newLead.id,
-          organizationId: user.org_id,
+          organizationId: user.org_id!,
           type: "EVENT",
           typeId: "event-participation",
           description: `イベント「${participation.event.title}」に参加`,
-          metadata: {
-            eventId: participation.eventId,
-            participationId: participation.id,
-            participationStatus: participation.status,
-            registeredAt: participation.registeredAt,
-          },
         },
       });
     });
@@ -179,13 +147,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: "新しいLeadを作成し、参加者と紐付けました",
       lead: {
-        id: newLead.id,
-        name: newLead.name,
-        email: newLead.email,
-        phone: newLead.phone,
-        address: newLead.address,
+        id: newLead!.id,
+        name: newLead!.name,
+        email: newLead!.email,
+        phone: newLead!.phone,
+        address: newLead!.address,
       },
-      mergeHistoryId: mergeHistory.id,
       actionsPerformed: [
         "Lead作成",
         "EventParticipation紐付け",
@@ -231,7 +198,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { participationIds, autoMerge = true } = body;
+    const { participationIds } = body;
 
     const results = [];
     const errors = [];
@@ -242,7 +209,7 @@ export async function PUT(request: NextRequest) {
         const participation = await prisma.eventParticipation.findFirst({
           where: {
             id: participationId,
-            organizationId: user.org_id,
+            organizationId: user.org_id!,
             isExternal: true,
             leadId: null,
           },
@@ -277,7 +244,7 @@ export async function PUT(request: NextRequest) {
           phone: participation.participantPhone,
           address: participation.participantAddress,
           status: "potential",
-          organizationId: user.org_id,
+          organizationId: user.org_id!,
           referrer: `イベント参加: ${participation.event.title}`,
         };
 

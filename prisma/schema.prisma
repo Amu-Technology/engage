@@ -21,11 +21,11 @@ model User {
   updatedAt    DateTime      @updatedAt
   googleId     String?       @unique
   organization Organization? @relation(fields: [org_id], references: [id])
-  Payment      Payment[]
+  payments     Payment[]
 }
 
 model Organization {
-  id                      Int                      @id @default(autoincrement())
+  id                      Int                       @id @default(autoincrement())
   name                    String
   users                   User[]
   leads                   Lead[]
@@ -43,11 +43,14 @@ model Organization {
   leadActivities          LeadActivity[]
   leadStatusHistories     LeadStatusHistory[]
   paymentTypes            PaymentType[]
+  payments                Payment[]
   eventParticipations     EventParticipation[]
   leadCandidates          LeadCandidate[]
-  createdAt               DateTime                 @default(now())
-  updatedAt               DateTime                 @updatedAt
-  Payment                 Payment[]
+  participantMatches      ParticipantLeadMatch[]    // ★ 追加
+  mergeHistories          MergeHistory[]            // ★ 追加
+  relationships           ParticipantRelationship[] // ★ 追加
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
 }
 
 model Group {
@@ -58,7 +61,8 @@ model Group {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   leads          LeadGroup[]
-  events         Event[]        // グループに関連するイベント
+  events         Event[]        @relation("GroupEvents")
+  leadActivities LeadActivity[] @relation("GroupActivities")
 }
 
 model Lead {
@@ -97,8 +101,9 @@ model Lead {
   memos                   Memo[]
   activities              LeadActivity[]
   statusHistory           LeadStatusHistory[]
+  payments                Payment[]
   eventParticipations     EventParticipation[]
-  Payment                 Payment[]
+  participantMatches      ParticipantLeadMatch[]    // ★ 追加
 }
 
 model FamilyMember {
@@ -166,23 +171,23 @@ model Event {
   startDate         DateTime
   endDate           DateTime
   location          String?
-  description       String?               // 説明フィールドを追加
-  maxParticipants   Int?                  // 最大参加者数
-  registrationStart DateTime?             // 申込開始日時
-  registrationEnd   DateTime?             // 申込終了日時
-  isPublic          Boolean               @default(false) // 外部公開するか
-  accessToken       String?               @unique // 外部アクセス用トークン
-  groupId           String?               // 対象グループ（送り状印刷対象）
-  participationFee  Int?                  // 参加費用（円）
-  requirements      String?               // 持参物・注意事項
-  contactInfo       String?               // 連絡先情報
+  description       String?
+  maxParticipants   Int?
+  registrationStart DateTime?
+  registrationEnd   DateTime?
+  isPublic          Boolean               @default(false)
+  accessToken       String?               @unique
+  groupId           String?
+  participationFee  Int?
+  requirements      String?
+  contactInfo       String?
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
   organization      Organization          @relation(fields: [organizationId], references: [id])
-  group             Group?                @relation(fields: [groupId], references: [id])
-  leads             Lead[]                // 参加リード (任意)
-  leadActivities    LeadActivity[]        // イベントから生成された活動
-  participations    EventParticipation[]  // 参加状況管理
+  group             Group?                @relation("GroupEvents", fields: [groupId], references: [id])
+  leads             Lead[]
+  leadActivities    LeadActivity[]
+  participations    EventParticipation[]
 }
 
 model Memo {
@@ -248,54 +253,52 @@ model ActivityType {
   updatedAt      DateTime       @updatedAt
 }
 
-// 新規モデル: Payment
-// 新規モデル: PaymentType
 model PaymentType {
   id             String   @id @default(cuid())
-  name           String // 入金タイプ名（例：「年会費」「商品A」「寄付」など）
-  organizationId Int // どの組織の入金タイプか
+  name           String
+  organizationId Int
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  organization Organization @relation(fields: [organizationId], references: [id])
-  payments     Payment[] // このタイプに属する入金一覧
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  payments       Payment[]
 }
 
 model Payment {
   id             String   @id @default(cuid())
-  amount         Int // 金額
-  paymentDate    DateTime // 入金日
-  description    String? // メモ
-  paymentTypeId  String? // PaymentTypeへの外部キー
-  leadId         String // どのリードからの入金か
-  organizationId Int // どの組織の入金か
-  recordedById   String // 誰が記録したか
+  amount         Int
+  paymentDate    DateTime
+  description    String?
+  paymentTypeId  String?
+  leadId         String
+  organizationId Int
+  recordedById   String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  lead         Lead          @relation(fields: [leadId], references: [id])
-  organization Organization  @relation(fields: [organizationId], references: [id])
-  recordedBy   User          @relation(fields: [recordedById], references: [id])
-  paymentType  PaymentType?  @relation(fields: [paymentTypeId], references: [id]) // PaymentTypeとのリレーション
-  activity     LeadActivity?
+  lead           Lead          @relation(fields: [leadId], references: [id])
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  recordedBy     User          @relation(fields: [recordedById], references: [id])
+  paymentType    PaymentType?  @relation(fields: [paymentTypeId], references: [id])
+  activity       LeadActivity?
 }
 
 model LeadActivity {
   id             String        @id @default(cuid())
   leadId         String
-  eventId        String?       // Eventとの関連キー
+  eventId        String?
+  groupId        String?
   organizationId Int
   lead           Lead          @relation(fields: [leadId], references: [id])
   event          Event?        @relation(fields: [eventId], references: [id])
   type           String
   typeId         String
   activityType   ActivityType? @relation(fields: [typeId], references: [id])
-  description    String?       // 任意項目に変更
+  description    String?
   organization   Organization  @relation(fields: [organizationId], references: [id])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-
-  paymentId String?  @unique
-  payment   Payment? @relation(fields: [paymentId], references: [id])
+  paymentId      String?       @unique
+  payment        Payment?      @relation(fields: [paymentId], references: [id])
+  group          Group?        @relation("GroupActivities", fields: [groupId], references: [id])
 }
 
 model LeadStatusHistory {
@@ -312,54 +315,203 @@ model LeadStatusHistory {
   updatedAt      DateTime     @updatedAt
 }
 
-// イベント参加管理テーブル
 model EventParticipation {
-  id               String                   @id @default(cuid())
-  eventId          String
-  leadId           String?                  // 内部リード（任意）
-  organizationId   Int
-  participantName  String                   // 参加者名（外部ユーザー対応）
-  participantEmail String?                  // 参加者メール
-  participantPhone String?                  // 参加者電話番号
-  participantAddress String?                // 参加者住所
-  status           EventParticipationStatus @default(PENDING) // 参加状況
-  responseDate     DateTime?                // 返信日時
-  registeredAt     DateTime                 @default(now()) // 申込日時
-  note             String?                  // メモ
-  isExternal       Boolean                  @default(false) // 外部ユーザーか
-  createdAt        DateTime                 @default(now())
-  updatedAt        DateTime                 @updatedAt
+  id                    String                    @id @default(cuid())
+  eventId               String
+  leadId                String?
+  organizationId        Int
+  participantName       String
+  participantEmail      String?
+  participantPhone      String?
+  participantAddress    String?
+  status                EventParticipationStatus  @default(PENDING)
+  responseDate          DateTime?
+  registeredAt          DateTime                  @default(now())
+  note                  String?
+  isExternal            Boolean                   @default(false)
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
   
-  event        Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  lead         Lead?        @relation(fields: [leadId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
-  candidateProfile LeadCandidate?
+  event                 Event                     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  lead                  Lead?                     @relation(fields: [leadId], references: [id])
+  organization          Organization              @relation(fields: [organizationId], references: [id])
+  leadMatches           ParticipantLeadMatch[]    // ★ 追加
+  candidateProfile      LeadCandidate?
+  primaryRelationships  ParticipantRelationship[] @relation("PrimaryRelation")
+  relatedRelationships  ParticipantRelationship[] @relation("RelatedRelation")
   
-  @@unique([eventId, leadId]) // 同一イベント・リードの重複防止
-  @@unique([eventId, participantEmail]) // 同一イベント・メールの重複防止
+  @@unique([eventId, leadId])
+  @@unique([eventId, participantEmail])
 }
 
-// Lead候補プロファイル
+
+// --- ここからが新規追加モデル ---
+
+model ParticipantLeadMatch {
+  id               String      @id @default(cuid())
+  participationId  String
+  leadId           String?
+  organizationId   Int
+  matchType        MatchType
+  confidence       Float
+  matchedFields    Json
+  candidateData    Json?
+  status           MatchStatus @default(PROPOSED)
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  mergedAt         DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  
+  participation    EventParticipation @relation(fields: [participationId], references: [id], onDelete: Cascade)
+  lead             Lead?              @relation(fields: [leadId], references: [id])
+  organization     Organization       @relation(fields: [organizationId], references: [id])
+  
+  @@unique([participationId, leadId])
+  @@index([organizationId, status])
+  @@index([confidence])
+}
+
 model LeadCandidate {
-  id             String   @id @default(cuid())
-  participationId String  @unique
-  organizationId Int
-  extractedData  Json     // 抽出されたデータ
-  completeness   Float    // 0.0-1.0
-  readyForLead   Boolean  @default(false)
-  stage          String   @default("INITIAL") // INITIAL, ANALYZING, CONVERTED
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String         @id @default(cuid())
+  participationId  String         @unique
+  organizationId   Int
+  stage            CandidateStage @default(INITIAL)
+  completeness     Float          @default(0.0)
+  extractedData    Json
+  enhancedData     Json?
+  validatedData    Json?
+  duplicateChecks  Json?
+  duplicateScore   Float?
+  readyForLead     Boolean        @default(false)
+  blockers         Json?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
   
   participation EventParticipation @relation(fields: [participationId], references: [id], onDelete: Cascade)
   organization  Organization       @relation(fields: [organizationId], references: [id])
+  
+  @@index([organizationId, stage])
+  @@index([readyForLead])
+  @@index([completeness])
 }
 
-// 参加状況の列挙型
+model MergeHistory {
+  id               String             @id @default(cuid())
+  organizationId   Int
+  operationType    MergeType
+  sourceType       String
+  sourceId         String
+  targetType       String
+  targetId         String
+  mergedData       Json
+  rollbackData     Json
+  executedBy       String
+  executedAt       DateTime           @default(now())
+  status           MergeHistoryStatus @default(EXECUTED)
+  rollbackReason   String?
+  rolledBackAt     DateTime?
+  rolledBackBy     String?
+  
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  
+  @@index([organizationId, executedAt])
+  @@index([sourceId, sourceType])
+  @@index([targetId, targetType])
+}
+
+model ParticipantRelationship {
+  id                     String           @id @default(cuid())
+  organizationId         Int
+  primaryParticipationId   String
+  relatedParticipationId   String
+  relationshipType       RelationshipType
+  strength               Float
+  confidence             Float
+  detectedBy             DetectionMethod
+  evidence               Json
+  detectedAt             DateTime         @default(now())
+  verified               Boolean          @default(false)
+  verifiedBy             String?
+  verifiedAt             DateTime?
+  
+  primaryParticipation EventParticipation @relation("PrimaryRelation", fields: [primaryParticipationId], references: [id], onDelete: Cascade)
+  relatedParticipation EventParticipation @relation("RelatedRelation", fields: [relatedParticipationId], references: [id], onDelete: Cascade)
+  organization         Organization       @relation(fields: [organizationId], references: [id])
+  
+  @@unique([primaryParticipationId, relatedParticipationId])
+  @@index([organizationId, relationshipType])
+  @@index([strength])
+}
+
+
+// --- ここからが新規追加Enum ---
+
+enum MatchType {
+  EMAIL_EXACT
+  EMAIL_DOMAIN
+  NAME_EXACT
+  NAME_FUZZY
+  PHONE_EXACT
+  PHONE_NORMALIZED
+  ADDRESS_PARTIAL
+  PATTERN_ML
+  MANUAL
+}
+
+enum MatchStatus {
+  PROPOSED
+  REVIEWING
+  APPROVED
+  MERGED
+  REJECTED
+  AUTO_MERGED
+}
+
+enum CandidateStage {
+  INITIAL
+  ENHANCED
+  VALIDATED
+  READY
+  CONVERTED
+}
+
+enum MergeType {
+  PARTICIPANT_TO_LEAD
+  PARTICIPANT_TO_EXISTING
+  LEAD_MERGE
+  DATA_ENHANCEMENT
+}
+
+enum MergeHistoryStatus {
+  EXECUTED
+  ROLLED_BACK
+  FAILED
+}
+
+enum RelationshipType {
+  FAMILY
+  COLLEAGUE
+  COMPANION
+  REFERRER
+  SAME_PERSON
+  FREQUENT_PAIR
+}
+
+enum DetectionMethod {
+  SAME_EMAIL
+  SAME_PHONE
+  SAME_ADDRESS
+  NAME_SIMILARITY
+  TEMPORAL_PATTERN
+  MANUAL_INPUT
+  ML_DETECTION
+}
+
 enum EventParticipationStatus {
-  PENDING     // 返信待ち
-  CONFIRMED   // 参加確定
-  DECLINED    // 不参加
-  CANCELLED   // キャンセル
-  WAITLIST    // キャンセル待ち
+  PENDING
+  CONFIRMED
+  DECLINED
+  CANCELLED
+  WAITLIST
 }
