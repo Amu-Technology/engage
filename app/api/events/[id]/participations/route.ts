@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { EventParticipationStatus } from "@prisma/client";
 
 // バリデーションスキーマ
 const createParticipationSchema = z.object({
@@ -130,8 +131,9 @@ export async function GET(
 // POST /api/events/[id]/participations - 新規参加申込
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -150,7 +152,6 @@ export async function POST(
       );
     }
 
-    const eventId = params.id;
     const body = await request.json();
 
     // バリデーション
@@ -159,7 +160,7 @@ export async function POST(
     // イベントの存在確認と組織チェック
     const event = await prisma.event.findFirst({
       where: {
-        id: eventId,
+        id: id,
         organizationId: user.org_id,
       },
       include: {
@@ -200,13 +201,13 @@ export async function POST(
     let whereCondition;
     if (validatedData.isExternal && validatedData.participantEmail) {
       whereCondition = {
-        eventId: eventId,
+        eventId: id,
         participantEmail: validatedData.participantEmail,
         isExternal: true,
       };
     } else if (!validatedData.isExternal && validatedData.leadId) {
       whereCondition = {
-        eventId: eventId,
+        eventId: id,
         leadId: validatedData.leadId,
       };
     } else {
@@ -238,7 +239,7 @@ export async function POST(
     // 参加申込作成
     const participation = await prisma.eventParticipation.create({
       data: {
-        eventId: eventId,
+        eventId: id,
         organizationId: user.org_id,
         leadId: validatedData.isExternal ? null : validatedData.leadId,
         participantName: validatedData.participantName,
@@ -246,7 +247,7 @@ export async function POST(
         participantPhone: validatedData.participantPhone,
         note: validatedData.note,
         isExternal: validatedData.isExternal,
-        status: initialStatus,
+        status: initialStatus as EventParticipationStatus,
         registeredAt: now,
       },
       include: {

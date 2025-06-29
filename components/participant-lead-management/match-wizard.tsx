@@ -20,9 +20,6 @@ import {
   AlertTriangle, 
   CheckCircle, 
   User, 
-  Mail, 
-  Phone, 
-  MapPin,
   ArrowRight,
   Merge,
   UserPlus
@@ -55,7 +52,11 @@ interface MatchWizardProps {
     };
     confidence: number;
     matchType: string;
-    matchedFields: any;
+    matchedFields: {
+      name?: boolean;
+      email?: boolean;
+      phone?: boolean;
+    };
   };
   onComplete: () => void;
 }
@@ -423,6 +424,7 @@ export function MatchWizard({
       onComplete();
       onClose();
     } catch (error) {
+      console.error('エラー:', error);
       toast.error('処理に失敗しました');
     } finally {
       setIsProcessing(false);

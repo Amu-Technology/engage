@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/public/events/[accessToken] - 公開イベント情報取得（認証不要）
 export async function GET(
   request: NextRequest,
-  { params }: { params: { accessToken: string } }
+  { params }: { params: Promise<{ accessToken: string }> }
 ) {
   try {
-    const accessToken = params.accessToken;
+    const { accessToken } = await params;
 
     if (!accessToken) {
       return NextResponse.json(
