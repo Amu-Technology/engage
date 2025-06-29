@@ -5,13 +5,6 @@ import Link from "next/link";
 import * as React from "react";
 import {
   IconCompass,
-  IconDashboard,
-  IconFolder,
-  IconListDetails,
-  IconUsers,
-  IconUserCheck,
-  IconSettings,
-  IconChartBar,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -39,16 +32,6 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   adminNavItem: NavItem
 }
 
-const iconMap: Record<string, React.ReactNode> = {
-  dashboard: <IconDashboard />,
-  folder: <IconFolder />,
-  listDetails: <IconListDetails />,
-  users: <IconUsers />,
-  userCheck: <IconUserCheck />,
-  settings: <IconSettings />,
-  chartBar: <IconChartBar />,
-};
-
 export function AppSidebar({
   baseNavItems,
   adminNavItem,
@@ -70,7 +53,7 @@ export function AppSidebar({
       return [...baseNavItems, adminNavItem];
     }
     return baseNavItems;
-  }, [user?.role]);
+  }, [user?.role, adminNavItem, baseNavItems]);
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>

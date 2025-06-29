@@ -8,11 +8,11 @@ export const dynamic = "force-dynamic";
 // 家族メンバーを更新
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { name, nameReading, relationship } = body;
 
@@ -34,10 +34,10 @@ export async function PUT(
 // 家族メンバーを削除
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const session = await auth();
     if (!session?.user?.email) {

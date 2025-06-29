@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 // PaymentTypeを更新
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -17,7 +17,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: '組織に所属していません' }, { status: 404 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { name } = await request.json();
 
     if (!name) {
@@ -45,7 +45,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PaymentTypeを削除
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -56,7 +56,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: '組織に所属していません' }, { status: 404 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     
     const existingType = await prisma.paymentType.findFirst({
         where: { id, organizationId: user.org_id }

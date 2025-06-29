@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useUser } from "@/app/providers/UserProvider";
 
@@ -111,7 +111,7 @@ export default function LeadsPage() {
     { id: string; name: string; color: string | null }[]
   >([]);
 
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     try {
       const response = await fetch(`/api/leads?type=${activeTab}`);
       if (!response.ok) {
@@ -125,13 +125,13 @@ export default function LeadsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeTab]);
 
   useEffect(() => {
     if (!isUserLoading) {
       fetchLeads();
     }
-  }, [isUserLoading, activeTab]);
+  }, [isUserLoading, activeTab, fetchLeads]);
 
   const fetchGroups = async () => {
     try {

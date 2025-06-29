@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -445,7 +446,13 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
                 <div className="qr-section">
                   {qrCodes[label.id] ? (
                     <div className="qr-code">
-                      <img src={qrCodes[label.id]} alt={`QR Code for ${label.recipientInfo.name}`} />
+                      <Image 
+                        src={qrCodes[label.id]} 
+                        alt={`QR Code for ${label.recipientInfo.name}`} 
+                        width={100} 
+                        height={100}
+                        unoptimized
+                      />
                     </div>
                   ) : (
                     <div className="qr-placeholder">
@@ -539,10 +546,13 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
                 <div className="text-center">
                   <p className="font-medium mb-2">QRコード</p>
                   {qrCodes[label.id] ? (
-                    <img 
+                    <Image 
                       src={qrCodes[label.id]} 
                       alt={`QR Code for ${label.recipientInfo.name}`}
                       className="w-16 h-16 mx-auto border"
+                      width={64}
+                      height={64}
+                      unoptimized
                     />
                   ) : (
                     <div className="w-16 h-16 mx-auto border border-gray-300 bg-gray-100 flex items-center justify-center text-xs text-gray-500">

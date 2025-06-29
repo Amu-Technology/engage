@@ -13,8 +13,9 @@ const updateMatchSchema = z.object({
 // PUT /api/admin/participant-lead-management/matches/[matchId] - マッチング承認/却下
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { matchId: string } }
+  { params }: { params: Promise<{ matchId: string }> }
 ) {
+  const { matchId } = await params;
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -33,7 +34,6 @@ export async function PUT(
       );
     }
 
-    const { matchId } = params;
     const body = await request.json();
     const { action, note } = updateMatchSchema.parse(body);
 
@@ -41,7 +41,7 @@ export async function PUT(
     const match = await prisma.participantLeadMatch.findFirst({
       where: {
         id: matchId,
-        organizationId: user.org_id,
+        organizationId: user.org_id as number,
       },
       include: {
         participation: true,
@@ -81,7 +81,7 @@ export async function PUT(
           // マージ履歴記録
           await tx.mergeHistory.create({
             data: {
-              organizationId: user.org_id,
+              organizationId: user.org_id as number,
               operationType: "PARTICIPANT_TO_EXISTING",
               sourceType: "EventParticipation",
               sourceId: match.participationId,
@@ -159,7 +159,7 @@ export async function PUT(
           // マージ履歴記録
           await tx.mergeHistory.create({
             data: {
-              organizationId: user.org_id,
+              organizationId: user.org_id as number,
               operationType: "DATA_ENHANCEMENT",
               sourceType: "EventParticipation",
               sourceId: participation.id,
@@ -206,8 +206,9 @@ export async function PUT(
 // DELETE /api/admin/participant-lead-management/matches/[matchId] - マッチング削除
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { matchId: string } }
+  { params }: { params: Promise<{ matchId: string }> }
 ) {
+  const { matchId } = await params;
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -224,8 +225,6 @@ export async function DELETE(
         { status: 404 }
       );
     }
-
-    const { matchId } = params;
 
     await prisma.participantLeadMatch.delete({
       where: {

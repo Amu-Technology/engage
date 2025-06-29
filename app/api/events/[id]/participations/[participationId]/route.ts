@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 // バリデーションスキーマ
 const updateParticipationSchema = z.object({
@@ -79,7 +80,7 @@ export async function PUT(
     const newStatus = validatedData.status;
 
     // ステータス変更のビジネスロジック
-    let additionalUpdates: any = {};
+    const additionalUpdates: Prisma.EventParticipationUpdateInput = {};
 
     // 定員管理ロジック
     if (newStatus === 'CONFIRMED' && currentStatus !== 'CONFIRMED') {
@@ -128,7 +129,7 @@ export async function PUT(
           where: {
             eventId: eventId,
             status: 'WAITLIST',
-            organizationId: user.org_id,
+            organizationId: user.org_id as number,
           },
           orderBy: { registeredAt: 'asc' },
         });
@@ -233,7 +234,7 @@ export async function DELETE(
           where: {
             eventId: eventId,
             status: 'WAITLIST',
-            organizationId: user.org_id,
+            organizationId: user.org_id as number,
           },
           orderBy: { registeredAt: 'asc' },
         });

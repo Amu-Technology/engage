@@ -14,13 +14,15 @@ export function calculateDataCompleteness(participationData: {
   const requiredFields = ['participantName', 'participantEmail'];
   const optionalFields = ['participantPhone', 'participantAddress'];
   
-  const requiredScore = requiredFields.filter(field => 
-    participationData[field] && participationData[field].trim().length > 0
-  ).length / requiredFields.length;
+  const requiredScore = requiredFields.filter(field => {
+    const value = participationData[field as keyof typeof participationData];
+    return value && value.trim().length > 0;
+  }).length / requiredFields.length;
   
-  const optionalScore = optionalFields.filter(field => 
-    participationData[field] && participationData[field].trim().length > 0
-  ).length / optionalFields.length;
+  const optionalScore = optionalFields.filter(field => {
+    const value = participationData[field as keyof typeof participationData];
+    return value && value.trim().length > 0;
+  }).length / optionalFields.length;
   
   // 必須項目70% + 任意項目30%の重み付け
   return (requiredScore * 0.7) + (optionalScore * 0.3);
@@ -206,7 +208,7 @@ export function calculateOverallMatchScore(
   };
   
   const overall = Object.entries(scores).reduce((sum, [field, score]) => {
-    return sum + (score * weights[field]);
+    return sum + (score * weights[field as keyof typeof weights]);
   }, 0);
   
   return {
@@ -261,8 +263,7 @@ function levenshteinDistance(str1: string, str2: string): number {
 // バッチ処理用のマッチング分析
 export async function batchMatchAnalysis(
   participationIds: string[],
-  organizationId: number,
-  algorithm: 'fuzzy' | 'ml' | 'hybrid' = 'hybrid'
+  organizationId: number
 ) {
   const results = [];
   
@@ -295,7 +296,18 @@ export async function batchMatchAnalysis(
       const matches = [];
       
       for (const lead of leads) {
-        const matchResult = calculateOverallMatchScore(participation, lead);
+        const matchResult = calculateOverallMatchScore({
+          participantName: participation.participantName,
+          participantEmail: participation.participantEmail || undefined,
+          participantPhone: participation.participantPhone || undefined,
+          participantAddress: participation.participantAddress || undefined,
+        }, {
+          name: lead.name,
+          email: lead.email || undefined,
+          phone: lead.phone || undefined,
+          mobilePhone: lead.mobilePhone || undefined,
+          address: lead.address || undefined,
+        });
         
         if (matchResult.overall >= MATCH_THRESHOLDS.MINIMUM) {
           matches.push({
