@@ -397,8 +397,8 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="text-gray-600 mt-4">送り状データを読み込み中...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
+            <p className="text-muted-foreground mt-4">送り状データを読み込み中...</p>
           </div>
         </CardContent>
       </Card>
@@ -416,16 +416,16 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <InfoIcon className="h-12 w-12 text-red-400 mx-auto mb-4" />
-            <p className="text-red-600 mb-2">送り状データの読み込みに失敗しました</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <InfoIcon className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <p className="text-destructive mb-2">送り状データの読み込みに失敗しました</p>
+            <p className="text-sm text-muted-foreground mt-2">
               エラー詳細: {error?.message || 'データの読み込みに失敗しました'}
             </p>
-            <div className="mt-4 p-3 bg-gray-50 rounded text-left">
-              <p className="text-xs text-gray-600 mb-2">デバッグ情報:</p>
-              <p className="text-xs text-gray-500">イベントID: {eventId}</p>
-              <p className="text-xs text-gray-500">エラータイプ: {error?.name || 'Unknown'}</p>
-              <p className="text-xs text-gray-500">データ状態: {labelsData ? '存在' : 'なし'}</p>
+            <div className="mt-4 p-3 bg-muted/50 rounded text-left">
+              <p className="text-xs text-muted-foreground mb-2">デバッグ情報:</p>
+              <p className="text-xs text-muted-foreground">イベントID: {eventId}</p>
+              <p className="text-xs text-muted-foreground">エラータイプ: {error?.name || 'Unknown'}</p>
+              <p className="text-xs text-muted-foreground">データ状態: {labelsData ? '存在' : 'なし'}</p>
             </div>
             <div className="mt-4">
               <Button 
@@ -453,9 +453,9 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <InfoIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-2">送り状を作成できません</p>
-            <p className="text-sm text-gray-500">
+            <InfoIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground mb-2">送り状を作成できません</p>
+            <p className="text-sm text-muted-foreground">
               このイベントにグループが設定されていないか、グループにリードが登録されていません
             </p>
           </div>
@@ -486,13 +486,13 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
             </Button>
           </div>
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           グループ「{labelsData?.event?.groupName || '未設定'}」のリード {labelsData?.totalCount || 0}件の送り状を印刷できます
         </p>
       </CardHeader>
       <CardContent>
         {/* 送り状テンプレート編集セクション */}
-        <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+        <div className="mb-6 p-4 border rounded-lg bg-muted/50">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium">送り状テンプレート編集</h3>
             <div className="flex gap-2">
@@ -575,7 +575,7 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
                 disabled={!isEditing}
                 className="mt-1 min-h-[100px]"
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 利用可能な変数: {'{name}'}, {'{event_title}'}, {'{date}'}, {'{location}'}, {'{participation_fee}'}, {'{requirements}'}
               </p>
             </div>
@@ -700,13 +700,13 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
 
         {/* プレビュー表示（画面表示用） */}
         <div className="mt-6 space-y-4 max-h-96 overflow-y-auto">
-          <h3 className="font-medium text-sm text-gray-600">プレビュー（最初の3件）</h3>
+          <h3 className="font-medium text-sm text-muted-foreground">プレビュー（最初の3件）</h3>
           {labelsData.shippingLabels?.slice(0, 3).map((label, index) => (
-            <div key={label.id} className="border rounded-lg p-4 bg-gray-50">
+            <div key={label.id} className="border rounded-lg p-4 bg-muted/50">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h4 className="font-medium">{label.recipientInfo.name} 様</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-medium text-foreground">{label.recipientInfo.name} 様</h4>
+                  <p className="text-sm text-muted-foreground">
                     {label.recipientInfo.postalCode && `〒${label.recipientInfo.postalCode} `}
                     {label.recipientInfo.address}
                   </p>
@@ -715,17 +715,17 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
               </div>
               <div className="grid grid-cols-3 gap-4 text-xs">
                 <div>
-                  <p className="font-medium">イベント情報</p>
-                  <p>{label.eventInfo.title}</p>
-                  <p>{new Date(label.eventInfo.startDate).toLocaleDateString('ja-JP')}</p>
+                  <p className="font-medium text-foreground">イベント情報</p>
+                  <p className="text-foreground">{label.eventInfo.title}</p>
+                  <p className="text-foreground">{new Date(label.eventInfo.startDate).toLocaleDateString('ja-JP')}</p>
                   {label.eventInfo.participationFee && (
-                    <p>参加費: {label.eventInfo.participationFee.toLocaleString()}円</p>
+                    <p className="text-foreground">参加費: {label.eventInfo.participationFee.toLocaleString()}円</p>
                   )}
                   {/* プレビュー用テンプレート文章 */}
                   {labelsData.event.shippingLabelTemplate && (
-                    <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
-                      <p className="font-medium mb-1">テンプレート文章:</p>
-                      <p className="text-gray-700">
+                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded text-xs">
+                      <p className="font-medium mb-1 text-blue-900 dark:text-blue-100">テンプレート文章:</p>
+                      <p className="text-blue-700 dark:text-blue-300">
                         {replaceTemplateVariables(labelsData.event.shippingLabelTemplate, label).substring(0, 100)}
                         {replaceTemplateVariables(labelsData.event.shippingLabelTemplate, label).length > 100 && '...'}
                       </p>
@@ -733,8 +733,8 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
                   )}
                 </div>
                 <div>
-                  <p className="font-medium">申込URL</p>
-                  <p className="text-blue-600 break-all text-xs">
+                  <p className="font-medium text-foreground">申込URL</p>
+                  <p className="text-blue-600 dark:text-blue-400 break-all text-xs">
                     {label.registrationUrl.length > 30 
                       ? `${label.registrationUrl.substring(0, 30)}...` 
                       : label.registrationUrl
@@ -742,7 +742,7 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="font-medium mb-2">QRコード</p>
+                  <p className="font-medium mb-2 text-foreground">QRコード</p>
                   {qrCodes[label.id] ? (
                     <Image 
                       src={qrCodes[label.id]} 
@@ -753,7 +753,7 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
                       unoptimized
                     />
                   ) : (
-                    <div className="w-16 h-16 mx-auto border border-gray-300 bg-gray-100 flex items-center justify-center text-xs text-gray-500">
+                    <div className="w-16 h-16 mx-auto border border-border bg-muted flex items-center justify-center text-xs text-muted-foreground">
                       生成中...
                     </div>
                   )}
@@ -762,7 +762,7 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
             </div>
           ))}
           {labelsData?.totalCount > 3 && (
-            <p className="text-sm text-gray-500 text-center">
+            <p className="text-sm text-muted-foreground text-center">
               他 {(labelsData?.totalCount || 0) - 3} 件...
             </p>
           )}

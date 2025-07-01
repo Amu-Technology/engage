@@ -147,7 +147,7 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
                 <Badge variant="destructive">終了済み</Badge>
               )}
               {isNearCapacity && !isEventPast && (
-                <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
                   定員間近
                 </Badge>
               )}
@@ -188,27 +188,27 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
         {/* イベント基本情報 */}
         {event.description && (
           <div>
-            <h4 className="font-medium text-sm text-gray-600 mb-2">概要</h4>
-            <p className="text-sm text-gray-900">{event.description}</p>
+            <h4 className="font-medium text-sm text-muted-foreground mb-2">概要</h4>
+            <p className="text-sm text-foreground">{event.description}</p>
           </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* 日時 */}
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <CalendarIcon className="h-4 w-4 text-blue-600" />
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-full">
+              <CalendarIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">開催日時</p>
-              <p className="text-sm font-medium">
+              <p className="text-xs text-muted-foreground font-medium">開催日時</p>
+              <p className="text-sm font-medium text-foreground">
                 {eventDate.toLocaleDateString('ja-JP', {
                   month: 'short',
                   day: 'numeric',
                   weekday: 'short',
                 })}
               </p>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-muted-foreground">
                 {eventDate.toLocaleTimeString('ja-JP', {
                   hour: '2-digit',
                   minute: '2-digit',
@@ -220,29 +220,29 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
           {/* 場所 */}
           {event.location && (
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-full">
-                <MapPinIcon className="h-4 w-4 text-green-600" />
+              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-full">
+                <MapPinIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium">場所</p>
-                <p className="text-sm font-medium">{event.location}</p>
+                <p className="text-xs text-muted-foreground font-medium">場所</p>
+                <p className="text-sm font-medium text-foreground">{event.location}</p>
               </div>
             </div>
           )}
 
           {/* 参加者数 */}
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-purple-100 rounded-full">
-              <UsersIcon className="h-4 w-4 text-purple-600" />
+            <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-full">
+              <UsersIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">参加者数</p>
-              <p className="text-sm font-medium">
+              <p className="text-xs text-muted-foreground font-medium">参加者数</p>
+              <p className="text-sm font-medium text-foreground">
                 {participantCount}
                 {event.maxParticipants && ` / ${event.maxParticipants}`}名
               </p>
               {event.maxParticipants && (
-                <div className="w-20 bg-gray-200 rounded-full h-1.5 mt-1">
+                <div className="w-20 bg-muted rounded-full h-1.5 mt-1">
                   <div 
                     className={`h-1.5 rounded-full transition-all ${
                       participantCount >= event.maxParticipants 
@@ -262,10 +262,10 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
         </div>
 
         {/* 参加申込URL */}
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h4 className="font-medium text-sm text-gray-700 mb-2">参加申込URL</h4>
+        <div className="p-4 bg-muted/50 rounded-lg">
+          <h4 className="font-medium text-sm text-foreground mb-2">参加申込URL</h4>
           <div className="flex items-center space-x-2">
-            <code className="flex-1 text-xs bg-white p-2 rounded border text-gray-700 overflow-x-auto">
+            <code className="flex-1 text-xs bg-background p-2 rounded border text-foreground overflow-x-auto">
               {typeof window !== 'undefined' && `${window.location.origin}/events/${eventId}/register`}
             </code>
             <Button 
@@ -276,7 +276,7 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
               コピー
             </Button>
           </div>
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-xs text-muted-foreground mt-2">
             このURLを参加者に共有して申込を受け付けできます
           </p>
         </div>

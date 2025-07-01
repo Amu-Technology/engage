@@ -44,7 +44,7 @@ export function ParticipantsOverview({ eventId }: ParticipantsOverviewProps) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="h-16 bg-gray-200 rounded-lg"></div>
+                <div className="h-16 bg-muted rounded-lg"></div>
               </div>
             ))}
           </div>
@@ -57,19 +57,19 @@ export function ParticipantsOverview({ eventId }: ParticipantsOverviewProps) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <p className="text-red-600">参加状況を取得できませんでした</p>
+          <p className="text-destructive">参加状況を取得できませんでした</p>
           {error && (
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-muted-foreground mt-2">
               エラー詳細: {error.message || 'データの読み込みに失敗しました'}
             </p>
           )}
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             イベントID: {eventId}
           </p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             ローディング状態: {isLoading ? '読み込み中' : '完了'}
           </p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             データ: {stats ? '存在' : 'なし'}
           </p>
         </CardContent>
@@ -84,8 +84,8 @@ export function ParticipantsOverview({ eventId }: ParticipantsOverviewProps) {
       count: stats.confirmed,
       icon: CheckCircleIcon,
       color: 'bg-green-500',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-700',
+      bgColor: 'bg-green-50 dark:bg-green-950/20',
+      textColor: 'text-green-700 dark:text-green-300',
     },
     {
       key: 'waitlist',
@@ -93,8 +93,8 @@ export function ParticipantsOverview({ eventId }: ParticipantsOverviewProps) {
       count: stats.waitlist,
       icon: ClockIcon,
       color: 'bg-orange-500',
-      bgColor: 'bg-orange-50',
-      textColor: 'text-orange-700',
+      bgColor: 'bg-orange-50 dark:bg-orange-950/20',
+      textColor: 'text-orange-700 dark:text-orange-300',
     },
     {
       key: 'declined',
@@ -102,8 +102,8 @@ export function ParticipantsOverview({ eventId }: ParticipantsOverviewProps) {
       count: stats.declined,
       icon: XCircleIcon,
       color: 'bg-gray-500',
-      bgColor: 'bg-gray-50',
-      textColor: 'text-gray-700',
+      bgColor: 'bg-gray-50 dark:bg-gray-950/20',
+      textColor: 'text-gray-700 dark:text-gray-300',
     },
     {
       key: 'pending',
@@ -111,8 +111,8 @@ export function ParticipantsOverview({ eventId }: ParticipantsOverviewProps) {
       count: stats.pending,
       icon: UsersIcon,
       color: 'bg-blue-500',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-700',
+      bgColor: 'bg-blue-50 dark:bg-blue-950/20',
+      textColor: 'text-blue-700 dark:text-blue-300',
     },
   ];
 
@@ -139,10 +139,10 @@ export function ParticipantsOverview({ eventId }: ParticipantsOverviewProps) {
                     <Icon className={`h-4 w-4 ${item.color.replace('bg-', 'text-')}`} />
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-900">
+                    <div className="text-2xl font-bold text-foreground">
                       {item.count}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       {percentage.toFixed(0)}%
                     </div>
                   </div>
@@ -152,7 +152,7 @@ export function ParticipantsOverview({ eventId }: ParticipantsOverviewProps) {
                     {item.label}
                   </p>
                   {/* プログレスバー */}
-                  <div className="w-full bg-white bg-opacity-50 rounded-full h-1.5 mt-2">
+                  <div className="w-full bg-background/50 rounded-full h-1.5 mt-2">
                     <div 
                       className={`h-1.5 rounded-full transition-all ${item.color}`}
                       style={{ width: `${percentage}%` }}
@@ -166,22 +166,22 @@ export function ParticipantsOverview({ eventId }: ParticipantsOverviewProps) {
 
         {/* 参加率表示 */}
         {stats.total > 0 && (
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-blue-900">参加率</span>
-              <span className="text-lg font-bold text-blue-900">
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">参加率</span>
+              <span className="text-lg font-bold text-blue-900 dark:text-blue-100">
                 {((stats.confirmed / (stats.confirmed + stats.declined)) * 100 || 0).toFixed(1)}%
               </span>
             </div>
-            <div className="w-full bg-blue-200 rounded-full h-2">
+            <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
               <div 
-                className="bg-blue-600 h-2 rounded-full transition-all"
+                className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all"
                 style={{ 
                   width: `${(stats.confirmed / (stats.confirmed + stats.declined)) * 100 || 0}%` 
                 }}
               ></div>
             </div>
-            <p className="text-xs text-blue-700 mt-2">
+            <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
               参加確定 {stats.confirmed}名 / 回答済み {stats.confirmed + stats.declined}名
             </p>
           </div>
