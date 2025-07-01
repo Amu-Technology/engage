@@ -5,12 +5,18 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { 
   PrinterIcon, 
   InfoIcon,
-  PackageIcon
+  PackageIcon,
+  EditIcon,
+  SaveIcon,
+  XIcon
 } from 'lucide-react';
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
 
@@ -61,6 +67,10 @@ interface ShippingLabelsResponse {
     id: string;
     title: string;
     groupName: string;
+    shippingLabelTemplate?: string;
+    participationFee?: number;
+    requirements?: string;
+    contactInfo?: string;
   };
   shippingLabels: ShippingLabel[];
   totalCount: number;
@@ -77,11 +87,30 @@ const fetcher = (url: string) => fetch(url).then(async (res) => {
 export function ShippingLabels({ eventId }: ShippingLabelsProps) {
   const [isPrinting, setIsPrinting] = useState(false);
   const [qrCodes, setQrCodes] = useState<Record<string, string>>({});
+  const [isEditing, setIsEditing] = useState(false);
+  const [templateData, setTemplateData] = useState({
+    shippingLabelTemplate: '',
+    participationFee: '',
+    requirements: '',
+    contactInfo: ''
+  });
 
   const { data: labelsData, error, isLoading } = useSWR<ShippingLabelsResponse>(
     `/api/events/${eventId}/shipping-labels`,
     fetcher
   );
+
+  // テンプレートデータを初期化
+  useEffect(() => {
+    if (labelsData?.event) {
+      setTemplateData({
+        shippingLabelTemplate: labelsData.event.shippingLabelTemplate || '',
+        participationFee: labelsData.event.participationFee?.toString() || '',
+        requirements: labelsData.event.requirements || '',
+        contactInfo: labelsData.event.contactInfo || ''
+      });
+    }
+  }, [labelsData]);
 
   // デバッグ情報を追加
   console.log('送り状印刷コンポーネント - イベントID:', eventId);
@@ -117,6 +146,46 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
       generateQRCodes();
     }
   }, [labelsData]);
+
+  // テンプレート保存
+  const handleSaveTemplate = async () => {
+    try {
+      const response = await fetch(`/api/events/${eventId}/shipping-labels`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shippingLabelTemplate: templateData.shippingLabelTemplate,
+          participationFee: templateData.participationFee ? parseInt(templateData.participationFee) : null,
+          requirements: templateData.requirements,
+          contactInfo: templateData.contactInfo,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('テンプレートの保存に失敗しました');
+      }
+
+      toast.success('送り状テンプレートを保存しました');
+      setIsEditing(false);
+      mutate(`/api/events/${eventId}/shipping-labels`);
+    } catch (error) {
+      console.error('テンプレート保存エラー:', error);
+      toast.error('テンプレートの保存に失敗しました');
+    }
+  };
+
+  // テンプレート編集キャンセル
+  const handleCancelEdit = () => {
+    if (labelsData?.event) {
+      setTemplateData({
+        shippingLabelTemplate: labelsData.event.shippingLabelTemplate || '',
+        participationFee: labelsData.event.participationFee?.toString() || '',
+        requirements: labelsData.event.requirements || '',
+        contactInfo: labelsData.event.contactInfo || ''
+      });
+    }
+    setIsEditing(false);
+  };
 
   const handlePrint = async () => {
     setIsPrinting(true);
@@ -210,6 +279,14 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
                   color: #666;
                   margin-bottom: 3mm;
                 }
+                .template-message {
+                  font-size: 11px;
+                  line-height: 1.5;
+                  margin: 3mm 0;
+                  padding: 2mm;
+                  background-color: #f9f9f9;
+                  border-left: 2px solid #3B82F6;
+                }
                 .event-details {
                   border-top: 1px solid #ddd;
                   padding-top: 3mm;
@@ -294,6 +371,19 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
     } finally {
       setIsPrinting(false);
     }
+  };
+
+  // テンプレート文章の変数を置換する関数
+  const replaceTemplateVariables = (template: string, label: ShippingLabel) => {
+    if (!template) return '';
+    
+    return template
+      .replace(/\{name\}/g, label.recipientInfo.name)
+      .replace(/\{event_title\}/g, label.eventInfo.title)
+      .replace(/\{date\}/g, new Date(label.eventInfo.startDate).toLocaleDateString('ja-JP'))
+      .replace(/\{location\}/g, label.eventInfo.location || '未定')
+      .replace(/\{participation_fee\}/g, label.eventInfo.participationFee ? `${label.eventInfo.participationFee.toLocaleString()}円` : '無料')
+      .replace(/\{requirements\}/g, label.eventInfo.requirements || '特になし');
   };
 
   if (isLoading) {
@@ -401,6 +491,97 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
         </p>
       </CardHeader>
       <CardContent>
+        {/* 送り状テンプレート編集セクション */}
+        <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium">送り状テンプレート編集</h3>
+            <div className="flex gap-2">
+              {isEditing ? (
+                <>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveTemplate}
+                    className="flex items-center gap-2"
+                  >
+                    <SaveIcon className="h-4 w-4" />
+                    保存
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                    className="flex items-center gap-2"
+                  >
+                    <XIcon className="h-4 w-4" />
+                    キャンセル
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2"
+                >
+                  <EditIcon className="h-4 w-4" />
+                  編集
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="participationFee">参加費</Label>
+              <Input
+                id="participationFee"
+                type="number"
+                placeholder="参加費を入力"
+                value={templateData.participationFee}
+                onChange={(e) => setTemplateData(prev => ({ ...prev, participationFee: e.target.value }))}
+                disabled={!isEditing}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="requirements">持参物</Label>
+              <Input
+                id="requirements"
+                placeholder="持参物を入力"
+                value={templateData.requirements}
+                onChange={(e) => setTemplateData(prev => ({ ...prev, requirements: e.target.value }))}
+                disabled={!isEditing}
+                className="mt-1"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <Label htmlFor="contactInfo">連絡先情報</Label>
+              <Input
+                id="contactInfo"
+                placeholder="連絡先情報を入力"
+                value={templateData.contactInfo}
+                onChange={(e) => setTemplateData(prev => ({ ...prev, contactInfo: e.target.value }))}
+                disabled={!isEditing}
+                className="mt-1"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <Label htmlFor="shippingLabelTemplate">送り状テンプレート文章</Label>
+              <Textarea
+                id="shippingLabelTemplate"
+                placeholder="送り状に表示する文章を入力してください"
+                value={templateData.shippingLabelTemplate}
+                onChange={(e) => setTemplateData(prev => ({ ...prev, shippingLabelTemplate: e.target.value }))}
+                disabled={!isEditing}
+                className="mt-1 min-h-[100px]"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                利用可能な変数: {'{name}'}, {'{event_title}'}, {'{date}'}, {'{location}'}, {'{participation_fee}'}, {'{requirements}'}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div id="shipping-labels-content">
           {labelsData.shippingLabels?.map((label) => (
             <div key={label.id} className="shipping-label" style={{ pageBreakAfter: 'always' }}>
@@ -440,6 +621,13 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
                       </div>
                     )}
                   </div>
+
+                  {/* テンプレート文章を表示 */}
+                  {labelsData.event.shippingLabelTemplate && (
+                    <div className="template-message">
+                      {replaceTemplateVariables(labelsData.event.shippingLabelTemplate, label)}
+                    </div>
+                  )}
                 </div>
 
                 {/* QRコードセクション */}
@@ -532,6 +720,16 @@ export function ShippingLabels({ eventId }: ShippingLabelsProps) {
                   <p>{new Date(label.eventInfo.startDate).toLocaleDateString('ja-JP')}</p>
                   {label.eventInfo.participationFee && (
                     <p>参加費: {label.eventInfo.participationFee.toLocaleString()}円</p>
+                  )}
+                  {/* プレビュー用テンプレート文章 */}
+                  {labelsData.event.shippingLabelTemplate && (
+                    <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
+                      <p className="font-medium mb-1">テンプレート文章:</p>
+                      <p className="text-gray-700">
+                        {replaceTemplateVariables(labelsData.event.shippingLabelTemplate, label).substring(0, 100)}
+                        {replaceTemplateVariables(labelsData.event.shippingLabelTemplate, label).length > 100 && '...'}
+                      </p>
+                    </div>
                   )}
                 </div>
                 <div>

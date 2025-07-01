@@ -2,8 +2,88 @@ import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
+
+// 送り状テンプレート更新用のスキーマ
+const updateShippingTemplateSchema = z.object({
+  shippingLabelTemplate: z.string().optional(),
+  participationFee: z.number().optional(),
+  requirements: z.string().optional(),
+  contactInfo: z.string().optional(),
+});
+
+// PUT /api/events/[id]/shipping-labels - 送り状テンプレート更新
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: { organization: true },
+    });
+
+    if (!user?.org_id) {
+      return NextResponse.json(
+        { error: "組織に所属していません" },
+        { status: 404 }
+      );
+    }
+
+    const { id: eventId } = await params;
+    const body = await request.json();
+
+    // バリデーション
+    const validatedData = updateShippingTemplateSchema.parse(body);
+
+    // イベントの存在確認と組織チェック
+    const event = await prisma.event.findFirst({
+      where: {
+        id: eventId,
+        organizationId: user.org_id,
+      },
+    });
+
+    if (!event) {
+      return NextResponse.json(
+        { error: "イベントが見つかりません" },
+        { status: 404 }
+      );
+    }
+
+    // イベントを更新
+    const updatedEvent = await prisma.event.update({
+      where: { id: eventId },
+      data: validatedData,
+    });
+
+    return NextResponse.json({
+      message: "送り状テンプレートを更新しました",
+      event: updatedEvent,
+    });
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "入力データが無効です", details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    console.error("送り状テンプレート更新エラー:", error);
+    return NextResponse.json(
+      { error: "送り状テンプレートの更新に失敗しました" },
+      { status: 500 }
+    );
+  }
+}
 
 // 送り状データを取得
 export async function GET(
@@ -161,6 +241,10 @@ export async function GET(
         id: event.id,
         title: event.title,
         groupName: event.group.name,
+        shippingLabelTemplate: event.shippingLabelTemplate,
+        participationFee: event.participationFee,
+        requirements: event.requirements,
+        contactInfo: event.contactInfo,
       },
       shippingLabels,
       totalCount: shippingLabels.length,

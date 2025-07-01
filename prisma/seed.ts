@@ -56,6 +56,8 @@ async function main() {
     { name: '訪問', color: '#9370DB', point: 20 },
     { name: '提案', color: '#20B2AA', point: 10 },
     { name: '入金', color: '#FFD700', point: 50 },
+    { name: 'イベント案内', color: '#FF6B6B', point: 15 },
+    { name: 'イベント参加', color: '#3B82F6', point: 25 },
   ]
 
   for (const type of defaultActivityTypes) {

@@ -214,6 +214,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // accessTokenの重複チェック
+    if (isPublic && accessToken) {
+      const existingEvent = await prisma.event.findUnique({
+        where: { accessToken }
+      });
+      if (existingEvent) {
+        return NextResponse.json(
+          { error: "このアクセストークンは既に使用されています" },
+          { status: 400 }
+        );
+      }
+    }
+
     // イベントを作成
     const event = await prisma.event.create({
       data: {
@@ -227,7 +240,11 @@ export async function POST(request: NextRequest) {
         registrationEnd: registrationEnd ? new Date(registrationEnd) : null,
         isPublic: Boolean(isPublic),
         accessToken: isPublic && accessToken ? accessToken : null,
-        groupId: groupId || null,
+        group: groupId ? {
+          connect: {
+            id: groupId
+          }
+        } : undefined,
         organization: {
           connect: {
             id: user.org_id!
@@ -251,12 +268,31 @@ export async function POST(request: NextRequest) {
         }
       });
 
+      // デフォルトのActivityTypeを取得または作成
+      let defaultActivityType = await prisma.activityType.findFirst({
+        where: {
+          organizationId: user.org_id!,
+          name: "イベント参加"
+        }
+      });
+
+      if (!defaultActivityType) {
+        defaultActivityType = await prisma.activityType.create({
+          data: {
+            name: "イベント参加",
+            organizationId: user.org_id!,
+            point: 25,
+            color: "#3B82F6"
+          }
+        });
+      }
+
       // 各リードに対してLeadActivityを作成
       for (const { leadId } of groupLeads) {
         await prisma.leadActivity.create({
           data: {
             type: "EVENT",
-            typeId: "default-イベント",
+            typeId: defaultActivityType.id,
             description: title,
             organizationId: user.org_id!,
             leadId: leadId,
