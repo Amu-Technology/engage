@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
             startDate: true,
           },
         },
-        candidateProfile: true,
+        leadCandidate: true,
       },
       orderBy: { registeredAt: "desc" },
       skip: offset,
@@ -91,10 +91,10 @@ export async function GET(request: NextRequest) {
       registeredAt: participation.registeredAt,
       event: participation.event,
       matchCandidates: [] as MatchCandidate[], // 一時的に空配列
-      candidateProfile: participation.candidateProfile ? {
-        stage: participation.candidateProfile.stage,
-        completeness: participation.candidateProfile.completeness,
-        readyForLead: participation.candidateProfile.readyForLead,
+      leadCandidate: participation.leadCandidate ? {
+        stage: participation.leadCandidate.stage,
+        completeness: participation.leadCandidate.completeness,
+        readyForLead: participation.leadCandidate.readyForLead,
       } : null,
     }));
 

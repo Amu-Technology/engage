@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       },
       include: {
         event: true,
-        candidateProfile: true,
+        leadCandidate: true,
       },
     });
 
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Lead候補プロファイル更新
-      if (participation.candidateProfile) {
+      if (participation.leadCandidate) {
         await tx.leadCandidate.update({
           where: { participationId },
           data: {
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
         "Lead作成",
         "EventParticipation紐付け",
         "LeadActivity作成",
-        ...(participation.candidateProfile ? ["Lead候補プロファイル更新"] : []),
+        ...(participation.leadCandidate ? ["Lead候補プロファイル更新"] : []),
       ],
     }, { status: 201 });
 
@@ -214,7 +214,7 @@ export async function PUT(request: NextRequest) {
             leadId: null,
           },
           include: {
-            candidateProfile: true,
+            leadCandidate: true,
             event: true,
           },
         });
@@ -228,11 +228,11 @@ export async function PUT(request: NextRequest) {
         }
 
         // 候補プロファイルがあり、準備完了の場合のみ処理
-        if (!participation.candidateProfile?.readyForLead) {
+        if (!participation.leadCandidate?.readyForLead) {
           errors.push({
             participationId,
             error: "Lead変換の準備ができていません",
-            completeness: participation.candidateProfile?.completeness || 0,
+            completeness: participation.leadCandidate?.completeness || 0,
           });
           continue;
         }
