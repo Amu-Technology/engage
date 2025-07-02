@@ -25,10 +25,5 @@ COPY . .
 # Prisma Clientを生成
 RUN npx prisma generate
 
-# entrypoint.sh を使う場合は以下の行を有効化
-# COPY entrypoint.sh .
-# RUN chmod +x entrypoint.sh
-# ENTRYPOINT ["./entrypoint.sh"]
-
 # 開発サーバーを起動
 CMD ["npm", "run", "dev"]
