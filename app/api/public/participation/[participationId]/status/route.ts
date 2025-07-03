@@ -1,7 +1,66 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/public/participation/[participationId]/status - 参加状況確認（認証不要）
+/**
+ * @openapi
+ * /api/public/participation/[participationId]/status:
+ *   get:
+ *     summary: 参加状況確認
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               participationId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 参加状況確認
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 participation:
+ *                   type: object
+ *                 event:
+ *                   type: object
+ *                 message:
+ *                   type: string
+ *                 statusInfo:
+ *                   type: object
+ *                 error:
+ *                   type: string
+ *       400:
+ *         description: 参加IDが必要です
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       404:
+ *         description: 参加記録が見つかりません
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: 参加状況の確認に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ participationId: string }> }

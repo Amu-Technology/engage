@@ -1,7 +1,83 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/public/events/[accessToken] - 公開イベント情報取得（認証不要）
+/**
+ * @openapi
+ * /api/public/events/[accessToken]:
+ *   get:
+ *     summary: 公開イベント情報取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               accessToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 公開イベント情報取得
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 title:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 startDate:
+ *                   type: string
+ *                 endDate:
+ *                   type: string
+ *                 location:
+ *                   type: string
+ *                 maxParticipants:
+ *                   type: number
+ *                 registrationStart:
+ *                   type: string
+ *                 registrationEnd:
+ *                   type: string
+ *                 isPublic:
+ *                   type: boolean
+ *                 accessToken:
+ *                   type: string
+ *                 _count:
+ *                   type: object
+ *                 properties:
+ *                   participations:
+ *                     type: number
+ *       400:
+ *         description: アクセストークンが必要です
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       404:
+ *         description: イベントが見つかりません
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: イベント情報の取得に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ accessToken: string }> }

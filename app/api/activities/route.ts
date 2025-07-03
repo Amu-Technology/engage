@@ -3,6 +3,33 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { Prisma } from '@prisma/client'
 
+/**
+ * @openapi
+ * /api/activities:
+ *   get:
+ *     summary: アクティビティ一覧取得
+ *     description: 指定したリードまたはグループのアクティビティを取得します。
+ *     parameters:
+ *       - in: query
+ *         name: leadId
+ *         schema:
+ *           type: string
+ *         description: リードID（任意）
+ *       - in: query
+ *         name: groupId
+ *         schema:
+ *           type: string
+ *         description: グループID（任意）
+ *     responses:
+ *       200:
+ *         description: アクティビティ一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/LeadActivity'
+ */
 export async function GET(request: Request) {
   try {
     const session = await auth()
@@ -85,6 +112,38 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * @openapi
+ * /api/activities:
+ *   post:
+ *     summary: アクティビティ作成
+ *     description: 新しいアクティビティを作成します。
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *               typeId:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               scheduledAt:
+ *                 type: string
+ *                 format: date-time
+ *               type:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 作成されたアクティビティ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LeadActivity'
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth()

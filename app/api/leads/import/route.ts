@@ -23,6 +23,32 @@ interface CsvRecord {
   isPaid?: string
 }
 
+/**
+ * @openapi
+ * /api/leads/import:
+ *   post:
+ *     summary: CSVファイルをインポート
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: インポート完了
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth()

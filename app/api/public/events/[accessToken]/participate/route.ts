@@ -11,7 +11,81 @@ const publicParticipationSchema = z.object({
   note: z.string().optional(),
 });
 
-// POST /api/public/events/[accessToken]/participate - 外部ユーザー参加申込（認証不要）
+/**
+ * @openapi
+ * /api/public/events/[accessToken]/participate:
+ *   post:
+ *     summary: 外部ユーザー参加申込
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               participantName:
+ *                 type: string
+ *               participantEmail:
+ *                 type: string
+ *               participantPhone:
+ *                 type: string
+ *               participantAddress:
+ *                 type: string
+ *               note:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: 外部ユーザー参加申込
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 participation:
+ *                   type: object
+ *                 event:
+ *                   type: object
+ *                 message:
+ *                   type: string
+ *                 isWaitlist:
+ *                   type: boolean
+ *       400:
+ *         description: 外部ユーザー参加申込に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       409:
+ *         description: 外部ユーザー参加申込に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: 外部ユーザー参加申込に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       404:
+ *         description: イベントが見つかりません
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ accessToken: string }> }

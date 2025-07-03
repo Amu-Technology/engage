@@ -2,6 +2,30 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/groups:
+ *   get:
+ *     summary: グループ一覧取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organizationId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: グループ一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Group'
+ */
 export async function GET() {
   try {
     const session = await auth()
@@ -33,6 +57,28 @@ export async function GET() {
   }
 }
 
+/**
+ * @openapi
+ * /api/groups:
+ *   post:
+ *     summary: グループ作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: グループ作成
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Group'
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth()
@@ -75,6 +121,30 @@ export async function POST(request: Request) {
   }
 }
 
+/**
+ * @openapi
+ * /api/groups:
+ *   put:
+ *     summary: グループ更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: グループ更新
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Group'
+ */
 export async function PUT(request: Request) {
   try {
     const session = await auth()

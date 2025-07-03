@@ -14,7 +14,59 @@ const createParticipationSchema = z.object({
   isExternal: z.boolean().default(false),
 });
 
-// GET /api/events/[id]/participations - 参加者一覧取得
+/**
+ * @openapi
+ * /api/events/{id}/participations:
+ *   get:
+ *     summary: 参加者一覧取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 参加者一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 participations:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/EventParticipation'
+ *                 stats:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     confirmed:
+ *                       type: integer
+ *                     pending:
+ *                       type: integer
+ *                     declined:
+ *                       type: integer
+ *                     waitlist:
+ *                       type: integer
+ *                     cancelled:
+ *                       type: integer
+ *                 event:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     title:
+ *                       type: string
+ *                     maxParticipants:
+ *                       type: integer
+ *                     availableSpots:
+ *                       type: integer
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -128,7 +180,43 @@ export async function GET(
   }
 }
 
-// POST /api/events/[id]/participations - 新規参加申込
+/**
+ * @openapi
+ * /api/events/{id}/participations:
+ *   post:
+ *     summary: 新規参加申込
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *               participantName:
+ *                 type: string
+ *               participantEmail:
+ *                 type: string
+ *               participantPhone:
+ *                 type: string
+ *               note:
+ *                 type: string
+ *               isExternal:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: 参加申込完了
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 participation:
+ *                   $ref: '#/components/schemas/EventParticipation'
+ *                 message:
+ *                   type: string
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -2,6 +2,30 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/group-activities:
+ *   get:
+ *     summary: グループアクティビティ一覧取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               groupId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: グループアクティビティ一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/GroupActivity'
+ */
 export async function GET(request: Request) {
   try {
     const session = await auth()
@@ -73,6 +97,36 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * @openapi
+ * /api/group-activities:
+ *   post:
+ *     summary: グループアクティビティ作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               groupId:
+ *                 type: string
+ *               typeId:
+ *                 type: string
+ *               content:
+ *                 type: string
+ *               scheduledAt:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: グループアクティビティ作成
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/GroupActivity'
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth()

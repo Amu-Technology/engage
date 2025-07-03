@@ -2,6 +2,35 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/leads/update-groups:
+ *   post:
+ *     summary: リードのグループ一括更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               groupId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: リードのグループ一括更新
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth()

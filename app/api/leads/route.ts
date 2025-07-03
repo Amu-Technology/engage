@@ -2,6 +2,21 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/leads:
+ *   get:
+ *     summary: リード一覧取得
+ *     responses:
+ *       200:
+ *         description: リード一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Lead'
+ */
 export async function GET(request: Request) {
   try {
     const session = await auth()
@@ -63,6 +78,25 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * @openapi
+ * /api/leads:
+ *   post:
+ *     summary: リード作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Lead'
+ *     responses:
+ *       200:
+ *         description: 作成されたリード
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Lead'
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth()
@@ -97,6 +131,25 @@ export async function POST(request: Request) {
   }
 }
 
+/**
+ * @openapi
+ * /api/leads:
+ *   put:
+ *     summary: リード更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Lead'
+ *     responses:
+ *       200:
+ *         description: 更新されたリード
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Lead'
+ */
 export async function PUT(request: Request) {
   try {
     const session = await auth()

@@ -3,6 +3,39 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
 // PUT: アクティビティタイプの更新
+/**
+ * @openapi
+ * /api/activity-types/{id}:
+ *   put:
+ *     summary: アクティビティタイプ更新
+ *     description: 指定したアクティビティタイプを更新します。
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               color:
+ *                 type: string
+ *               point:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: 更新されたアクティビティタイプ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ActivityType'
+ */
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -51,6 +84,26 @@ export async function PUT(
 }
 
 // DELETE: アクティビティタイプの削除
+/**
+ * @openapi
+ * /api/activity-types/{id}:
+ *   delete:
+ *     summary: アクティビティタイプ削除
+ *     description: 指定したアクティビティタイプを削除します。
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 削除されたアクティビティタイプ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ActivityType'
+ */
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

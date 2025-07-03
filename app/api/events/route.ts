@@ -5,7 +5,21 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
-// イベントを取得
+/**
+ * @openapi
+ * /api/events:
+ *   get:
+ *     summary: イベント一覧取得
+ *     responses:
+ *       200:
+ *         description: イベント一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Event'
+ */
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -173,7 +187,25 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// 新しいイベントを作成し、関連する活動も記録する
+/**
+ * @openapi
+ * /api/events:
+ *   post:
+ *     summary: イベント作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Event'
+ *     responses:
+ *       200:
+ *         description: 作成されたイベント
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Event'
+ */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();

@@ -3,6 +3,30 @@ import { prisma } from '@/lib/prisma'
 import { withAuth, checkOrganizationAccess, AuthenticatedUser } from '@/lib/auth-middleware'
 import { Prisma } from '@prisma/client'
 
+/**
+ * @openapi
+ * /api/lead-activities:
+ *   get:
+ *     summary: リードアクティビティ一覧取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: リードアクティビティ一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/LeadActivity'
+ */
 export const GET = withAuth(async (request: Request, { user }: AuthenticatedUser) => {
   try {
     const { searchParams } = new URL(request.url)
@@ -40,6 +64,36 @@ export const GET = withAuth(async (request: Request, { user }: AuthenticatedUser
   }
 })
 
+/**
+ * @openapi
+ * /api/lead-activities:
+ *   post:
+ *     summary: リードアクティビティ作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *               typeId:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *               scheduledAt:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: リードアクティビティ作成
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LeadActivity'
+ */
 export const POST = withAuth(async (request: Request, { user }: AuthenticatedUser) => {
   try {
     

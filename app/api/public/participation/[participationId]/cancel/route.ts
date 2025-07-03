@@ -1,7 +1,58 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-// POST /api/public/participation/[participationId]/cancel - 参加申込のキャンセル
+/**
+ * @openapi
+ * /api/public/participation/[participationId]/cancel:
+ *   post:
+ *     summary: 参加申込のキャンセル
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               participationId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 参加申込のキャンセル
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: 参加申込IDが必要です
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       404:
+ *         description: 参加申込が見つかりません
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: 参加申込のキャンセルに失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ participationId: string }> }

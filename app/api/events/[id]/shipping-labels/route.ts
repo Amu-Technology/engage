@@ -14,7 +14,39 @@ const updateShippingTemplateSchema = z.object({
   contactInfo: z.string().optional(),
 });
 
-// PUT /api/events/[id]/shipping-labels - 送り状テンプレート更新
+/**
+ * @openapi
+ * /api/events/{id}/shipping-labels:
+ *   put:
+ *     summary: 送り状テンプレート更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               shippingLabelTemplate:
+ *                 type: string
+ *               participationFee:
+ *                 type: number
+ *               requirements:
+ *                 type: string
+ *               contactInfo:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 送り状テンプレート更新
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 event:
+ *                   $ref: '#/components/schemas/Event'
+ */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -85,7 +117,37 @@ export async function PUT(
   }
 }
 
-// 送り状データを取得
+/**
+ * @openapi
+ * /api/events/{id}/shipping-labels:
+ *   get:
+ *     summary: 送り状データを取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 送り状データ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 event:
+ *                   $ref: '#/components/schemas/Event'
+ *                 shippingLabels:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ShippingLabel'
+ *                 totalCount:
+ *                   type: integer
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

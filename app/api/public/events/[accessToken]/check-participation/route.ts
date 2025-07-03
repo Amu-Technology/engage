@@ -1,7 +1,77 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/public/events/[accessToken]/check-participation - 参加申込状況チェック
+/**
+ * @openapi
+ * /api/public/events/[accessToken]/check-participation:
+ *   get:
+ *     summary: 参加申込状況チェック
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               accessToken:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 参加申込状況チェック
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 hasParticipated:
+ *                   type: boolean
+ *                 participation:
+ *                   type: object
+ *                 event:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     title:
+ *                       type: string
+ *                     startDate:
+ *                       type: string
+ *                     endDate:
+ *                       type: string
+ *                     location:
+ *                       type: string
+ *                 error:
+ *                   type: string
+ *       400:
+ *         description: 参加申込状況チェックに失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       404:
+ *         description: イベントが見つかりません
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: 参加申込状況の確認に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ accessToken: string }> }

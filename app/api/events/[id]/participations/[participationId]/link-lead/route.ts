@@ -5,7 +5,28 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// 参加者とLeadを紐付ける
+/**
+ * @openapi
+ * /api/events/{id}/participations/{participationId}/link-lead:
+ *   put:
+ *     summary: 参加者とLeadを紐付ける
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 紐付けされた参加者
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/EventParticipation'
+ */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; participationId: string }> }

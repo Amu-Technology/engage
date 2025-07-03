@@ -2,6 +2,21 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/memotypes:
+ *   get:
+ *     summary: メモタイプ一覧取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organizationId:
+ *                 type: string
+ */
 export async function GET() {
   try {
     const session = await auth()
@@ -33,6 +48,30 @@ export async function GET() {
   }
 }
 
+/**
+ * @openapi
+ * /api/memotypes:
+ *   post:
+ *     summary: メモタイプ作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:  
+ *               name:
+ *                 type: string
+ *               color:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: メモタイプ作成
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MemoType'
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth()

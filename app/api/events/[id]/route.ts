@@ -5,7 +5,55 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// イベント詳細を取得
+/**
+ * @openapi
+ * /api/events/{id}:
+ *   get:
+ *     summary: イベント詳細を取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: イベント詳細
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 title:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 date:
+ *                   type: string
+ *                 startDate:
+ *                   type: string
+ *                 endDate:
+ *                   type: string
+ *                 location:
+ *                   type: string
+ *                 maxParticipants:
+ *                   type: integer
+ *                 registrationStart:
+ *                   type: string
+ *                 registrationEnd:
+ *                   type: string
+ *                 isPublic:
+ *                   type: boolean
+ *                 accessToken:
+ *                   type: string
+ *                 groupId:
+ *                   type: string
+ */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
@@ -88,7 +136,51 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// イベントを更新
+/**
+ * @openapi
+ * /api/events/{id}:
+ *   put:
+ *     summary: イベント更新
+ *     requestBody:
+ *       required: true 
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               startDate:
+ *                 type: string
+ *               endDate:
+ *                 type: string
+ *               location:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               groupId:
+ *                 type: string
+ *               maxParticipants:
+ *                 type: integer
+ *               registrationStart:
+ *                 type: string
+ *               registrationEnd:
+ *                 type: string
+ *               isPublic:
+ *                 type: boolean
+ *               accessToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: イベント更新
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 event:
+ *                   $ref: '#/components/schemas/Event'
+ */
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
@@ -212,7 +304,31 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// イベントを削除
+/**
+ * @openapi
+ * /api/events/{id}:
+ *   delete:
+ *     summary: イベント削除
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: イベント削除
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();

@@ -19,7 +19,18 @@ const createLeadSchema = z.object({
   mergeExistingData: z.boolean().default(true),
 });
 
-// POST /api/admin/participant-lead-management/create-lead - 参加者からLead作成
+/**
+ * @openapi
+ * /api/admin/participant-lead-management/create-lead:
+ *   post:
+ *     summary: 参加者からLead作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateLead'
+ */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -177,8 +188,68 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// バッチ作成API
-// POST /api/admin/participant-lead-management/create-lead/batch
+/**
+ * @openapi
+ * /api/admin/participant-lead-management/create-lead/batch:
+ *   put:
+ *     summary: バッチ作成API
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               participationIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: バッチ作成結果
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 summary:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     success:
+ *                       type: integer
+ *                     errors:
+ *                       type: integer
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       participationId:
+ *                         type: string
+ *                       leadId:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                       error:
+ *                         type: string
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       participationId:
+ *                         type: string
+ *                       leadId:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                       error:
+ *                         type: string
+ */
 export async function PUT(request: NextRequest) {
   try {
     const session = await auth();

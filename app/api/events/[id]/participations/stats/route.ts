@@ -2,7 +2,41 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/events/[id]/participations/stats - 参加状況統計取得
+/**
+ * @openapi
+ * /api/events/{id}/participations/stats:
+ *   get:
+ *     summary: 参加状況統計取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 参加状況統計
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                 confirmed:
+ *                   type: integer
+ *                 declined:
+ *                   type: integer
+ *                 waitlist:
+ *                   type: integer
+ *                 pending:
+ *                   type: integer
+ *                 cancelled:
+ *                   type: integer
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

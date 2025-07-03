@@ -21,8 +21,48 @@ interface Participation {
   eventId: string;
 }
 
-// 参加者-Lead管理API
-// GET /api/admin/participant-lead-management - 紐付け候補一覧取得
+/**
+ * @openapi
+ * /api/admin/participant-lead-management:
+ *   get:
+ *     summary: 紐付け候補一覧取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               eventId:
+ *                 type: string
+ *               page:
+ *                 type: integer
+ *               limit:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: 紐付け候補一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 participations:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Participation'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     totalCount:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ */
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -117,7 +157,55 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/admin/participant-lead-management - 紐付け候補の自動生成
+/**
+ * @openapi
+ * /api/admin/participant-lead-management:
+ *   post:
+ *     summary: 紐付け候補の自動生成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               participationIds:
+ *                 type: array
+ *               algorithm:
+ *                 type: string
+ *               confidenceThreshold:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: マッチング分析結果
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       participationId:
+ *                         type: string
+ *                       candidatesFound:
+ *                         type: integer
+ *                       candidates:
+ *                         type: array
+ *                         items:
+ *                           $ref: '#/components/schemas/MatchCandidate'
+ *                 summary:
+ *                   type: object
+ *                   properties:
+ *                     processedParticipations:
+ *                       type: integer
+ *                     totalCandidatesFound:
+ *                       type: integer
+ */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();

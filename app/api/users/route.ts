@@ -3,6 +3,25 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+/**
+ * @openapi
+ * /api/users:
+ *   get:
+ *     summary: ユーザー情報取得
+ *     parameters:
+ *       - name: email
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: ユーザー情報
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -49,6 +68,25 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * @openapi
+ * /api/users:
+ *   post:
+ *     summary: ユーザー作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
+ *     responses:
+ *       200:
+ *         description: 作成されたユーザー
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -75,6 +113,25 @@ export async function POST(request: Request) {
   }
 }
 
+/**
+ * @openapi
+ * /api/users:
+ *   put:
+ *     summary: ユーザー更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
+ *     responses:
+ *       200:
+ *         description: 更新されたユーザー
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
 export async function PUT(request: Request) {
   try {
     const body = await request.json();

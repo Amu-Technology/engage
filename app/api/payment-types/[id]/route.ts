@@ -5,7 +5,28 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// PaymentTypeを更新
+/**
+ * @openapi
+ * /api/payment-types/{id}:
+ *   put:
+ *     summary: PaymentTypeを更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: PaymentTypeを更新
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PaymentType'
+ */
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
@@ -44,7 +65,31 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// PaymentTypeを削除
+/**
+ * @openapi
+ * /api/payment-types/{id}:
+ *   delete:
+ *     summary: PaymentTypeを削除
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: PaymentTypeを削除
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();

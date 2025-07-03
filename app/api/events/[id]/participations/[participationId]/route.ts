@@ -10,7 +10,35 @@ const updateParticipationSchema = z.object({
   note: z.string().optional(),
 });
 
-// PUT /api/events/[id]/participations/[participationId] - 参加状況変更
+/**
+ * @openapi
+ * /api/events/{id}/participations/{participationId}:
+ *   put:
+ *     summary: 参加状況変更
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *               note:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 参加状況変更
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 participation:
+ *                   $ref: '#/components/schemas/EventParticipation'
+ *                 message:
+ *                   type: string
+ */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; participationId: string }> }

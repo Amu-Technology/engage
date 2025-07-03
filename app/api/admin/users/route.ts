@@ -2,7 +2,21 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
-// GET: ユーザー一覧の取得
+/**
+ * @openapi
+ * /api/admin/users:
+ *   get:
+ *     summary: ユーザー一覧の取得
+ *     responses:
+ *       200:
+ *         description: ユーザー一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ */
 export async function GET() {
   try {
     const session = await auth()
@@ -42,7 +56,32 @@ export async function GET() {
   }
 }
 
-// POST: 新規ユーザーの作成
+/**
+ * @openapi
+ * /api/admin/users:
+ *   post:
+ *     summary: 新規ユーザーの作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 作成されたユーザー
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth()
@@ -100,7 +139,36 @@ export async function POST(request: Request) {
   }
 }
 
-// ユーザーの更新
+/**
+ * @openapi
+ * /api/admin/users:
+ *   put:
+ *     summary: ユーザー更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *               org_id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 更新されたユーザー
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
 export async function PUT(request: Request) {
   try {
     const session = await auth()
@@ -141,7 +209,31 @@ export async function PUT(request: Request) {
   }
 }
 
-// ユーザーの削除
+/**
+ * @openapi
+ * /api/admin/users:
+ *   delete:
+ *     summary: ユーザー削除
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 削除されたユーザー
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 export async function DELETE(request: Request) {
   try {
     const session = await auth()

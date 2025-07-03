@@ -2,6 +2,21 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/activity-types:
+ *   get:
+ *     summary: アクティビティタイプ一覧取得
+ *     responses:
+ *       200:
+ *         description: アクティビティタイプ一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ActivityType'
+ */
 export async function GET() {
   try {
     const session = await auth()
@@ -33,6 +48,32 @@ export async function GET() {
   }
 }
 
+/**
+ * @openapi
+ * /api/activity-types:
+ *   post:
+ *     summary: アクティビティタイプ作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               color:
+ *                 type: string
+ *               point:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: 作成されたアクティビティタイプ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ActivityType'
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth()
@@ -67,6 +108,32 @@ export async function POST(request: Request) {
   }
 }
 
+/**
+ * @openapi
+ * /api/activity-types:
+ *   put:
+ *     summary: アクティビティタイプ更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               color:
+ *                 type: string
+ *               point:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: 更新されたアクティビティタイプ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ActivityType'
+ */
 export async function PUT(request: Request) {
   try {
     const session = await auth()

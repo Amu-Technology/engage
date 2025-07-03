@@ -10,7 +10,33 @@ const updateMatchSchema = z.object({
   note: z.string().optional(),
 });
 
-// PUT /api/admin/participant-lead-management/matches/[matchId] - マッチング承認/却下
+/**
+ * @openapi
+ * /api/admin/participant-lead-management/matches/{matchId}:
+ *   put:
+ *     summary: マッチング承認/却下
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               action:
+ *                 type: string
+ *               note:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: マッチング承認/却下
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ matchId: string }> }
@@ -203,7 +229,21 @@ export async function PUT(
   }
 }
 
-// DELETE /api/admin/participant-lead-management/matches/[matchId] - マッチング削除
+/**
+ * @openapi
+ * /api/admin/participant-lead-management/matches/{matchId}:
+ *   delete:
+ *     summary: マッチング削除
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ matchId: string }> }
