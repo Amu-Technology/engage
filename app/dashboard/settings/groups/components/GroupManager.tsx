@@ -104,7 +104,7 @@ export function GroupManager() {
       </div>
 
       <div className="space-y-2">
-        <h3 className="grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6">グループ一覧</h3>
+        <h3 className="leading-none font-semibold">グループ一覧</h3>
         <div className="grid gap-2">
           {groups.map((group) => (
             <div
