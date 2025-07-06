@@ -104,7 +104,7 @@ export function GroupManager() {
       </div>
 
       <div className="space-y-2">
-        <h3 className="font-medium">グループ一覧</h3>
+        <h3 className="leading-none font-semibold">グループ一覧</h3>
         <div className="grid gap-2">
           {groups.map((group) => (
             <div
