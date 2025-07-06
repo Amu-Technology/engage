@@ -56,6 +56,74 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const accessToken = searchParams.get('token');
+
+    // アクセストークンがある場合は組織チェックをスキップ
+    if (accessToken) {
+      const event = await prisma.event.findFirst({
+        where: {
+          id: id,
+          accessToken: accessToken,
+          isPublic: true
+        },
+        include: {
+          _count: {
+            select: {
+              participations: {
+                where: { 
+                  status: { in: ['CONFIRMED', 'PENDING'] }
+                }
+              }
+            }
+          },
+          group: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        }
+      });
+
+      if (!event) {
+        return NextResponse.json({ error: 'イベントが見つかりません' }, { status: 404 });
+      }
+
+      console.log('アクセストークン経由でイベント取得:', {
+        id: event.id,
+        title: event.title,
+        accessToken: event.accessToken
+      });
+
+      // レスポンス形式を整理
+      const formattedEvent = {
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        date: event.startDate.toISOString(),
+        startDate: event.startDate.toISOString(),
+        endDate: event.endDate.toISOString(),
+        location: event.location,
+        maxParticipants: event.maxParticipants,
+        registrationStart: event.registrationStart?.toISOString() || null,
+        registrationEnd: event.registrationEnd?.toISOString() || null,
+        isPublic: event.isPublic,
+        accessToken: event.accessToken,
+        groupId: event.groupId,
+        group: {
+          name: event.group?.name || '未分類'
+        },
+        _count: {
+          participations: event._count.participations
+        }
+      };
+
+      return NextResponse.json(formattedEvent);
+    }
+
+    // アクセストークンがない場合は通常の認証フロー
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
@@ -69,8 +137,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!user?.org_id) {
       return NextResponse.json({ error: '組織に所属していません' }, { status: 404 });
     }
-
-    const { id } = await params;
 
     const event = await prisma.event.findFirst({
       where: {

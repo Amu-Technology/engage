@@ -38,15 +38,24 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         try {
           const response = await fetch(`/api/users?email=${session.user.email}`)
           if (!response.ok) {
-            throw new Error('ユーザー情報の取得に失敗しました')
+            if (response.status === 404) {
+              // ユーザーがデータベースに存在しない場合（外部ユーザーなど）
+              console.log('User not found in database, but authenticated:', session.user.email)
+              setUser(null)
+              setError(null)
+            } else {
+              throw new Error('ユーザー情報の取得に失敗しました')
+            }
+          } else {
+            const userData = await response.json()
+            
+            if (!userData.organization) {
+              console.warn('Organization data is missing for user:', userData.email)
+            }
+            
+            setUser(userData)
+            setError(null)
           }
-          const userData = await response.json()
-          
-          if (!userData.organization) {
-            console.warn('Organization data is missing for user:', userData.email)
-          }
-          
-          setUser(userData)
         } catch (err) {
           console.error('Error fetching user:', err)
           setError(err instanceof Error ? err : new Error('予期せぬエラーが発生しました'))
@@ -54,6 +63,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setIsLoading(false)
         }
       } else if (status === 'unauthenticated') {
+        setUser(null)
+        setError(null)
         setIsLoading(false)
       }
     }

@@ -128,6 +128,27 @@ async function main() {
       updatedAt: new Date(),
     },
   })
+
+    // ユーザーを作成または更新
+    await prisma.user.upsert({
+      where: {
+        email: 'test@test.com',
+      },
+      update: {
+        name: 'テストユーザー',
+        role: 'admin',
+        org_id: organization.id,
+        updatedAt: new Date(),
+      },
+      create: {
+        name: 'テストユーザー',
+        email: 'test@test.com',
+        role: 'admin',
+        org_id: organization.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    })
 }
 
 main()

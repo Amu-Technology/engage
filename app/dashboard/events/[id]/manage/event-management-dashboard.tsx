@@ -20,6 +20,7 @@ interface Event {
   location?: string;
   maxParticipants?: number;
   groupId?: string;
+  accessToken?: string;
   group: {
     name: string;
   };
@@ -47,7 +48,10 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
   });
 
   const handleCopyRegistrationLink = async () => {
-    const registrationUrl = `${window.location.origin}/events/${eventId}/register`;
+    // アクセストークンが設定されている場合は、そのトークンを含むURLを生成
+    const registrationUrl = event?.accessToken 
+      ? `${window.location.origin}/public/events/${event.accessToken}`
+      : `${window.location.origin}/events/${eventId}/register`;
     
     try {
       await navigator.clipboard.writeText(registrationUrl);
@@ -149,6 +153,11 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
               {isNearCapacity && !isEventPast && (
                 <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
                   定員間近
+                </Badge>
+              )}
+              {event.accessToken && (
+                <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  外部公開
                 </Badge>
               )}
             </div>
@@ -266,7 +275,11 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
           <h4 className="font-medium text-sm text-foreground mb-2">参加申込URL</h4>
           <div className="flex items-center space-x-2">
             <code className="flex-1 text-xs bg-background p-2 rounded border text-foreground overflow-x-auto">
-              {typeof window !== 'undefined' && `${window.location.origin}/events/${eventId}/register`}
+              {typeof window !== 'undefined' && (
+                event.accessToken 
+                  ? `${window.location.origin}/public/events/${event.accessToken}`
+                  : `${window.location.origin}/events/${eventId}/register`
+              )}
             </code>
             <Button 
               variant="outline" 
@@ -277,7 +290,10 @@ export function EventManagementDashboard({ eventId }: EventManagementDashboardPr
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            このURLを参加者に共有して申込を受け付けできます
+            {event.accessToken 
+              ? 'このURLを参加者に共有して申込を受け付けできます（外部公開）'
+              : 'このURLを参加者に共有して申込を受け付けできます'
+            }
           </p>
         </div>
       </CardContent>

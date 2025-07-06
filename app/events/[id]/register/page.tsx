@@ -76,19 +76,29 @@ export default function EventRegistrationPage() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
+        console.log('Fetching event with:', { eventId, accessToken });
+        
+        // アクセストークンがある場合は通常のイベントAPIを使用（tokenパラメータ付き）
         const url = accessToken 
-          ? `/api/public/events/${accessToken}`
+          ? `/api/events/${eventId}?token=${accessToken}`
           : `/api/events/${eventId}`;
         
+        console.log('API URL:', url);
+        
         const response = await fetch(url);
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('API Error Response:', errorText);
           throw new Error('イベントが見つかりません');
         }
         
         const eventData = await response.json();
+        console.log('Event data received:', eventData);
         setEvent(eventData);
         
-        // セッションからユーザー情報を自動入力
+        // セッションからユーザー情報を自動入力（認証済みユーザーのみ）
         if (session?.user) {
           setFormData(prev => ({
             ...prev,
@@ -107,7 +117,7 @@ export default function EventRegistrationPage() {
     fetchEvent();
   }, [eventId, accessToken, session]);
 
-  // 参加申込状況をチェック
+  // 参加申込状況をチェック（認証済みユーザーのみ）
   useEffect(() => {
     const checkParticipation = async () => {
       if (!session?.user?.email || !accessToken) return;
@@ -137,7 +147,8 @@ export default function EventRegistrationPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!session) {
+    // 外部ユーザーの場合は認証不要、内部ユーザーの場合は認証必要
+    if (!accessToken && !session) {
       toast.error('Googleアカウントでログインしてください');
       return;
     }
@@ -182,7 +193,13 @@ export default function EventRegistrationPage() {
       toast.success(result.message || '参加申込が完了しました！');
       
       // 申込完了後に確認ページにリダイレクト
-      window.location.href = `/events/${eventId}/register/confirmation?participationId=${result.participation.id}`;
+      if (accessToken) {
+        // 外部ユーザーの場合は公開ページにリダイレクト
+        window.location.href = `/public/participation/${result.participation.id}/status`;
+      } else {
+        // 内部ユーザーの場合は通常の確認ページにリダイレクト
+        window.location.href = `/events/${eventId}/register/confirmation?participationId=${result.participation.id}`;
+      }
       
     } catch (error) {
       console.error('参加申込エラー:', error);
@@ -371,7 +388,7 @@ export default function EventRegistrationPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
                   <p className="text-sm text-gray-600">認証状況を確認中...</p>
                 </div>
-              ) : !session ? (
+              ) : (session === null && !accessToken) ? (
                 <div className="space-y-4">
                   <Alert>
                     <ShieldIcon className="h-4 w-4" />
@@ -406,12 +423,104 @@ export default function EventRegistrationPage() {
                     </AlertDescription>
                   </Alert>
                 </div>
+              ) : accessToken ? (
+                // 外部ユーザー向けフォーム（認証不要）
+                <div className="space-y-4">
+                  <Alert>
+                    <ShieldIcon className="h-4 w-4" />
+                    <AlertDescription>
+                      外部ユーザー向けの参加申込フォームです。
+                    </AlertDescription>
+                  </Alert>
+
+                  {!isRegistrationOpen || isEventPast ? (
+                    <div className="text-center py-4">
+                      <p className="text-red-600 mb-2">
+                        {isEventPast ? 'このイベントは終了しています' : '申込期間外です'}
+                      </p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="participantName">お名前 *</Label>
+                        <Input
+                          id="participantName"
+                          value={formData.participantName}
+                          onChange={(e) => setFormData(prev => ({ ...prev, participantName: e.target.value }))}
+                          required
+                          placeholder="山田太郎"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="participantEmail">メールアドレス *</Label>
+                        <Input
+                          id="participantEmail"
+                          type="email"
+                          value={formData.participantEmail}
+                          onChange={(e) => setFormData(prev => ({ ...prev, participantEmail: e.target.value }))}
+                          required
+                          placeholder="example@domain.com"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="participantPhone">電話番号</Label>
+                        <Input
+                          id="participantPhone"
+                          value={formData.participantPhone}
+                          onChange={(e) => setFormData(prev => ({ ...prev, participantPhone: e.target.value }))}
+                          placeholder="090-1234-5678"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="participantAddress">住所</Label>
+                        <Textarea
+                          id="participantAddress"
+                          value={formData.participantAddress}
+                          onChange={(e) => setFormData(prev => ({ ...prev, participantAddress: e.target.value }))}
+                          placeholder="東京都新宿区"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="note">メモ</Label>
+                        <Textarea
+                          id="note"
+                          value={formData.note}
+                          onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))}
+                          placeholder="特記事項があればご記入ください"
+                          rows={3}
+                        />
+                      </div>
+
+                      <Separator />
+
+                      <div className="text-center text-sm text-gray-600">
+                        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          プライバシーポリシー
+                        </a>
+                        に同意の上、申込を送信してください
+                      </div>
+
+                      <Button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="w-full"
+                      >
+                        {isSubmitting ? '送信中...' : '参加申込を送信'}
+                      </Button>
+                    </form>
+                  )}
+                </div>
               ) : (
                 <div className="space-y-4">
                   <Alert>
                     <ShieldIcon className="h-4 w-4" />
                     <AlertDescription>
-                      {session.user?.name}さんでログイン中
+                      {session?.user?.name}さんでログイン中
                     </AlertDescription>
                   </Alert>
 
