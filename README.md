@@ -49,6 +49,74 @@ engage/
 
 ## セットアップ
 
+### テストサーバー環境でのセットアップ
+
+1. リポジトリのクローン
+```bash
+git clone [repository-url]
+cd engage
+```
+
+2. 環境変数の設定
+`.env.local`ファイルを作成し、以下の変数を設定：
+`.env`ファイルを作成し、同様の内容とする:
+```
+# アプリケーション設定 データベースは自身の用意した環境で
+DATABASE_URL="testpostgres"
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-very-strong-and-secret-key-for-nextauth
+
+# Google OAuth認証情報（自身のものを設定）
+GOOGLE_CLIENT_ID=your-google-client-id-goes-here
+GOOGLE_CLIENT_SECRET=your-google-client-secret-goes-here
+
+```
+
+3. 開発サーバーの起動
+
+```bash
+npm run dev
+
+```
+
+4. データベースのマイグレーションとシード  
+NEXTAuth.jsで認証した後、データベースのuserテーブルに認証したメールアドレスがあるかどうかを検証してログイン可否を決定しています。  
+その為デバッグするには`prisma/seed.ts`のuserテーブルにgoogleアカウントのシード値を追加してください。  
+```ts
+  // prisma/seed.ts
+  // 管理者ユーザーを作成または更新
+  await prisma.user.upsert({
+    where: {
+      email: '***@gmail.com',
+    },
+    update: {
+      name: '****',
+      role: 'admin',
+      org_id: organization.id,
+      updatedAt: new Date(),
+    },
+    create: {
+      name: '****',
+      email: '****@gmail.com',
+      role: 'admin',
+      org_id: organization.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  })
+```
+5. マイグレーションとシード値の適用  
+```bash
+# マイグレーションの実行
+npx prisma migrate deploy
+# シードデータの投入
+npx prisma db seed
+# データベースの確認
+npx prisma studio
+```
+
+
+
 ### Docker環境でのセットアップ
 
 1. リポジトリのクローン
@@ -80,8 +148,6 @@ brew install --cask docker
 ```bash
 # コンテナのビルドと起動
 docker compose up --build
-# コンテナの停止
-ctrl + C
 
 ```
 
