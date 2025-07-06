@@ -1,11 +1,14 @@
+"use client";
+
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Icon, IconChartBar, IconDashboard, IconFolder, IconListDetails, IconSettings, IconUserCheck, IconUsers } from "@tabler/icons-react";
 
 type NavItem = {
   title: string;
   url?: string;
-  iconKey?: string;
+  icon?: Icon;
   children?: NavItem[];
 };
 
@@ -13,58 +16,58 @@ const baseNavItems: NavItem[] = [
   {
     title: "ダッシュボード",
     url: "/dashboard",
-    iconKey: "dashboard",
+    icon: IconDashboard,
   },
   {
     title: "名簿管理",
-    iconKey: "userCheck",
+    icon: IconUserCheck,
     children: [
-      { title: "リード管理", url: "/dashboard/leads", iconKey: "userCheck" },
-      { title: "カレンダー", url: "/dashboard/calendar", iconKey: "userCheck" },
-      { title: "マップ表示", url: "/dashboard/map", iconKey: "userCheck" },
+      { title: "リード管理", url: "/dashboard/leads", icon: IconUserCheck },
+      { title: "カレンダー", url: "/dashboard/calendar", icon: IconUserCheck },
+      { title: "マップ表示", url: "/dashboard/map", icon: IconUserCheck },
     ],
   },
   {
     title: "実績管理",
-    iconKey: "listDetails",
+    icon: IconListDetails,
     children: [
-      { title: "実績記録", url: "/dashboard/actions", iconKey: "listDetails" },
-      { title: "入金管理", url: "/dashboard/payments", iconKey: "listDetails" },
+      { title: "実績記録", url: "/dashboard/actions", icon: IconListDetails },
+      { title: "入金管理", url: "/dashboard/payments", icon: IconListDetails },
       {
         title: "イベント管理",
         url: "/dashboard/events",
-        iconKey: "listDetails",
+        icon: IconListDetails,
       },
       {
         title: "アクティビティ分析",
         url: "/dashboard/analytics",
-        iconKey: "chartBar",
+        icon: IconChartBar,
       },
     ],
   },
   {
     title: "設定",
-    iconKey: "settings",
+    icon: IconSettings,
     children: [
       {
         title: "リードグループ設定",
         url: "/dashboard/settings/groups",
-        iconKey: "folder",
+        icon: IconFolder,
       },
       {
         title: "メモタイプ設定",
         url: "/dashboard/settings/memotypes",
-        iconKey: "folder",
+        icon: IconFolder,
       },
       {
         title: "アクティビティタイプ設定",
         url: "/dashboard/settings/activity-types",
-        iconKey: "folder",
+        icon: IconFolder,
       },
       {
         title: "入金タイプ設定",
         url: "/dashboard/settings/payment-types",
-        iconKey: "folder",
+        icon: IconFolder,
       },
     ],
   },
@@ -72,9 +75,9 @@ const baseNavItems: NavItem[] = [
 
 const adminNavItem: NavItem = {
   title: "システム管理",
-  iconKey: "users",
+  icon: IconUsers,
   children: [
-    { title: "ユーザー管理", url: "/dashboard/admin", iconKey: "users" },
+    { title: "ユーザー管理", url: "/dashboard/admin", icon: IconUsers },
   ],
 };
 

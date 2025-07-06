@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import * as React from "react";
 import {
+  Icon,
   IconCompass,
 } from "@tabler/icons-react";
 
@@ -23,7 +24,7 @@ import {
 type NavItem = {
   title: string
   url?: string
-  iconKey?: string
+  icon?: Icon
   children?: NavItem[]
 }
 

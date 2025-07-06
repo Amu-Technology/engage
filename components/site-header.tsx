@@ -4,11 +4,12 @@ import { Separator } from "@/components/ui/separator"
 import { Sidebar, SidebarTrigger } from "@/components/ui/sidebar"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { usePathname } from "next/navigation"
+import { Icon } from "@tabler/icons-react";
 
 type NavItem = {
   title: string
   url?: string
-  iconKey?: string
+  icon?: Icon
   children?: NavItem[]
 }
 
