@@ -226,7 +226,7 @@ const end   = endOfDay(dateRange.endDate);      // その日の 23:59:59
       timeline,
       leadsData,
     };
-  }, [activities, dateRange, activityTypes]);
+  }, [activities, dateRange, activityTypes, start, end]);
 
   const stats = useMemo(() => getStats(), [getStats]);
 

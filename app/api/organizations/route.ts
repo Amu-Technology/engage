@@ -3,7 +3,48 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// 組織一覧の取得
+/**
+ * @openapi
+ * /api/organizations:
+ *   get:
+ *     summary: 組織一覧の取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organizationId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 組織一覧の取得
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Organization'
+ *       500:
+ *         description: 組織一覧の取得に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       400:
+ *         description: 組織一覧の取得に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function GET() {
   try {
     const organizations = await prisma.organization.findMany({
@@ -21,7 +62,37 @@ export async function GET() {
   }
 }
 
-// 組織の作成
+/**
+ * @openapi
+ * /api/organizations:
+ *   post:
+ *     summary: 組織の作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 組織の作成
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Organization'
+ *       500:
+ *         description: 組織の作成に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function POST(request: Request) {
   try {
     const { name } = await request.json();
@@ -49,7 +120,39 @@ export async function POST(request: Request) {
   }
 }
 
-// 組織の更新
+/**
+ * @openapi
+ * /api/organizations:
+ *   put:
+ *     summary: 組織の更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 組織の更新
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Organization'
+ *       500:
+ *         description: 組織の更新に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function PUT(request: Request) {
   try {
     const { id, name } = await request.json();
@@ -76,7 +179,31 @@ export async function PUT(request: Request) {
   }
 }
 
-// 組織の削除
+/**
+ * @openapi
+ * /api/organizations:
+ *   delete:
+ *     summary: 組織の削除
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 組織の削除
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);

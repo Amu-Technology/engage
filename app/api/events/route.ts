@@ -5,7 +5,21 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
-// イベントを取得
+/**
+ * @openapi
+ * /api/events:
+ *   get:
+ *     summary: イベント一覧取得
+ *     responses:
+ *       200:
+ *         description: イベント一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Event'
+ */
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -34,11 +48,7 @@ export async function GET(request: NextRequest) {
 
     // グループIDでの絞り込み
     if (groupId) {
-      where.leadActivities = {
-        some: {
-          groupId: groupId,
-        },
-      };
+      where.groupId = groupId;
     }
 
     // リードIDでの絞り込み
@@ -56,13 +66,6 @@ export async function GET(request: NextRequest) {
         // イベントから生成された活動履歴を取得
         leadActivities: {
           include: {
-            // 活動履歴からグループ情報を取得
-            group: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
             // 活動履歴からリード情報を取得
             lead: {
               select: {
@@ -73,11 +76,47 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        // 参加者情報を含める
+        participations: {
+          where: { status: 'CONFIRMED' },
+          take: 5, // 最新5件のみ表示用
+          orderBy: { registeredAt: 'desc' },
+          select: {
+            id: true,
+            participantName: true,
+            participantEmail: true,
+            isExternal: true,
+            lead: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              }
+            }
+          }
+        },
+        // グループ情報を含める
+        group: {
+          select: {
+            id: true,
+            name: true,
+          }
+        }
       },
       orderBy: {
         startDate: "desc",
       },
     });
+
+    // 参加者数を別途取得
+    const participationCounts = await Promise.all(
+      events.map(async (event) => {
+        const count = await prisma.eventParticipation.count({
+          where: { eventId: event.id }
+        });
+        return { eventId: event.id, count };
+      })
+    );
 
     // 取得したデータを整形する
     const formattedEvents = events.map((event) => {
@@ -88,34 +127,85 @@ export async function GET(request: NextRequest) {
         { id: string; name: string; email: string | null }
       >();
 
+      // Eventのgroupを使用
+      if (event.group) {
+        groups.set(event.group.id, event.group);
+      }
+
       event.leadActivities.forEach((activity) => {
-        if (activity.group) {
-          groups.set(activity.group.id, activity.group);
-        }
         if (activity.lead) {
           leads.set(activity.lead.id, activity.lead);
         }
       });
 
+      const participationCount = participationCounts.find(p => p.eventId === event.id)?.count || 0;
+
       return {
-        ...event,
-        leadActivities: undefined, // 整形後は不要なため削除
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        startDate: event.startDate.toISOString(),
+        endDate: event.endDate.toISOString(),
+        location: event.location,
+        maxParticipants: event.maxParticipants,
+        isPublic: event.isPublic,
+        createdAt: event.createdAt.toISOString(),
+        updatedAt: event.updatedAt.toISOString(),
+        groupId: event.groupId,
         relatedGroups: Array.from(groups.values()),
         relatedLeads: Array.from(leads.values()),
+        // 参加者統計情報を追加
+        participationStats: {
+          totalParticipants: participationCount,
+          confirmedParticipants: event.participations.length,
+          availableSpots: event.maxParticipants 
+            ? Math.max(0, event.maxParticipants - event.participations.length)
+            : null,
+        },
+        recentParticipants: event.participations.map((p) => ({
+          id: p.id,
+          name: p.isExternal ? p.participantName : p.lead?.name || '',
+          email: p.isExternal ? p.participantEmail : p.lead?.email,
+          isExternal: p.isExternal,
+        })),
       };
     });
 
+    console.log(`API Response: Returning ${formattedEvents.length} events`);
     return NextResponse.json(formattedEvents);
   } catch (error) {
     console.error("イベント取得エラー:", error);
-    return NextResponse.json(
-      { error: "サーバーエラーが発生しました" },
-      { status: 500 }
-    );
+    
+    // エラー時も空配列を返却してフロントエンドのクラッシュを防ぐ
+    return NextResponse.json([], { 
+      status: 200,
+      headers: {
+        'X-Error': 'Database error occurred',
+        'X-Error-Message': error instanceof Error ? error.message : 'Unknown error'
+      }
+    });
   }
 }
 
-// 新しいイベントを作成し、関連する活動も記録する
+/**
+ * @openapi
+ * /api/events:
+ *   post:
+ *     summary: イベント作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Event'
+ *     responses:
+ *       200:
+ *         description: 作成されたイベント
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Event'
+ */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -135,13 +225,38 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, startDate, endDate, location, description, groupId } = body;
+    const { 
+      title, 
+      startDate, 
+      endDate, 
+      location, 
+      description, 
+      groupId,
+      maxParticipants,
+      registrationStart,
+      registrationEnd,
+      isPublic,
+      accessToken
+    } = body;
 
     if (!title || !startDate || !endDate) {
       return NextResponse.json(
         { error: "タイトル、開始日時、終了日時は必須です" },
         { status: 400 }
       );
+    }
+
+    // accessTokenの重複チェック
+    if (isPublic && accessToken) {
+      const existingEvent = await prisma.event.findUnique({
+        where: { accessToken }
+      });
+      if (existingEvent) {
+        return NextResponse.json(
+          { error: "このアクセストークンは既に使用されています" },
+          { status: 400 }
+        );
+      }
     }
 
     // イベントを作成
@@ -152,6 +267,16 @@ export async function POST(request: NextRequest) {
         endDate: new Date(endDate),
         location,
         description,
+        maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+        registrationStart: registrationStart ? new Date(registrationStart) : null,
+        registrationEnd: registrationEnd ? new Date(registrationEnd) : null,
+        isPublic: Boolean(isPublic),
+        accessToken: isPublic && accessToken ? accessToken : null,
+        group: groupId ? {
+          connect: {
+            id: groupId
+          }
+        } : undefined,
         organization: {
           connect: {
             id: user.org_id!
@@ -175,16 +300,34 @@ export async function POST(request: NextRequest) {
         }
       });
 
+      // デフォルトのActivityTypeを取得または作成
+      let defaultActivityType = await prisma.activityType.findFirst({
+        where: {
+          organizationId: user.org_id!,
+          name: "イベント参加"
+        }
+      });
+
+      if (!defaultActivityType) {
+        defaultActivityType = await prisma.activityType.create({
+          data: {
+            name: "イベント参加",
+            organizationId: user.org_id!,
+            point: 25,
+            color: "#3B82F6"
+          }
+        });
+      }
+
       // 各リードに対してLeadActivityを作成
       for (const { leadId } of groupLeads) {
         await prisma.leadActivity.create({
           data: {
             type: "EVENT",
-            typeId: "default-イベント",
+            typeId: defaultActivityType.id,
             description: title,
             organizationId: user.org_id!,
             leadId: leadId,
-            groupId: groupId,
             eventId: event.id
           }
         });

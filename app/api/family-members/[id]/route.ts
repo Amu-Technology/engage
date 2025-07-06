@@ -5,14 +5,39 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-// 家族メンバーを更新
+/**
+ * @openapi
+ * /api/family-members/{id}:
+ *   put:
+ *     summary: 家族メンバー更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               nameReading:
+ *                 type: string
+ *               relationship:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 家族メンバー更新
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/FamilyMember'
+ */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { name, nameReading, relationship } = body;
 
@@ -31,13 +56,37 @@ export async function PUT(
   }
 }
 
-// 家族メンバーを削除
+/**
+ * @openapi
+ * /api/family-members/{id}:
+ *   delete:
+ *     summary: 家族メンバー削除
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 家族メンバー削除
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const session = await auth();
     if (!session?.user?.email) {

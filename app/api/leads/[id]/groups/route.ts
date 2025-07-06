@@ -2,6 +2,30 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/leads/{id}/groups:
+ *   patch:
+ *     summary: リードのグループ一括更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               groupIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: リードのグループ一括更新
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Lead'
+ */
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

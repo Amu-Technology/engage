@@ -3,6 +3,21 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
 // 組織一覧の取得
+/**
+ * @openapi
+ * /api/admin/organizations:
+ *   get:
+ *     summary: 組織一覧取得
+ *     responses:
+ *       200:
+ *         description: 組織一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Organization'
+ */
 export async function GET() {
   try {
     const session = await auth()
@@ -71,7 +86,30 @@ export async function POST(request: Request) {
   }
 }
 
-// 組織の更新
+/**
+ * @openapi
+ * /api/admin/organizations:
+ *   put:
+ *     summary: 組織更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 更新された組織
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Organization'
+ */
 export async function PUT(request: Request) {
   try {
     const session = await auth()
@@ -109,7 +147,28 @@ export async function PUT(request: Request) {
   }
 }
 
-// 組織の削除
+/**
+ * @openapi
+ * /api/admin/organizations:
+ *   delete:
+ *     summary: 組織削除
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 削除された組織
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Organization'
+ */
 export async function DELETE(request: Request) {
   try {
     const session = await auth()

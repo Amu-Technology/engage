@@ -5,7 +5,30 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// 特定リードの家族一覧を取得
+/**
+ * @openapi
+ * /api/family-members:
+ *   get:
+ *     summary: 特定リードの家族一覧を取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 特定リードの家族一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/FamilyMember'
+ */
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -39,7 +62,34 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// 新しい家族メンバーを追加
+/**
+ * @openapi
+ * /api/family-members:
+ *   post:
+ *     summary: 新しい家族メンバーを追加
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               nameReading:
+ *                 type: string
+ *               relationship:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: 新しい家族メンバー
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/FamilyMember'
+ */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();

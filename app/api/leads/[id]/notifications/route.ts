@@ -2,6 +2,30 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/leads/{id}/notifications:
+ *   post:
+ *     summary: リードの通知設定
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               days:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: リードの通知設定
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotificationPreference'
+ */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

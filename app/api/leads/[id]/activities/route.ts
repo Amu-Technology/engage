@@ -2,6 +2,37 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
+/**
+ * @openapi
+ * /api/leads/{id}/activities:
+ *   post:
+ *     summary: リードのアクティビティ作成
+ *     description: 指定したリードに新しいアクティビティを作成します。
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               typeId:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 作成されたアクティビティ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LeadActivity'
+ */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -90,7 +121,31 @@ export async function POST(
     );
   }
 }
-// app/api/leads/[id]/activities/route.ts
+
+/**
+ * @openapi
+ * /api/leads/{id}/activities:
+ *   get:
+ *     summary: リードのアクティビティ一覧取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: リードのアクティビティ一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/LeadActivity'
+ */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

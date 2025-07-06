@@ -9,8 +9,18 @@ export default auth(async (req) => {
                       req.nextUrl.pathname.startsWith("/favicon.ico")
   const isDashboard = req.nextUrl.pathname.startsWith("/dashboard")
   const isAdminPage = req.nextUrl.pathname.startsWith("/admin")
+  
+  // 公開ページ（ログイン不要）
+  const isPublicPage = req.nextUrl.pathname === "/" ||
+                      req.nextUrl.pathname === "/privacy" ||
+                      req.nextUrl.pathname === "/terms-of-service"
 
   if (isApiRoute || isStaticFile) {
+    return NextResponse.next()
+  }
+
+  // 公開ページは認証不要
+  if (isPublicPage) {
     return NextResponse.next()
   }
 

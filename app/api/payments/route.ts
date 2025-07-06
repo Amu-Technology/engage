@@ -6,6 +6,43 @@ import { Prisma } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * @openapi
+ * /api/payments:
+ *   get:
+ *     summary: Payment一覧取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               paymentTypeId:
+ *                 type: string
+ *               startDate:
+ *                 type: string
+ *               endDate:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Payment一覧取得
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Payment'
+ *       500:
+ *         description: Payment一覧取得に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -61,7 +98,46 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
   }
 }
-// 新しい入金記録を作成
+
+/**
+ * @openapi
+ * /api/payments:
+ *   post:
+ *     summary: 新しい入金記録を作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *               amount:
+ *                 type: number
+ *               paymentDate:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               paymentTypeId:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: 新しい入金記録を作成
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Payment'
+ *       500:
+ *         description: 新しい入金記録を作成に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();

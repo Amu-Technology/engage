@@ -2,7 +2,34 @@ import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
-// PUT: ユーザーの更新
+/**
+ * @openapi
+ * /api/admin/users/{id}:
+ *   put:
+ *     summary: ユーザー更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *               org_id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 更新されたユーザー
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -65,7 +92,31 @@ export async function PUT(
   }
 }
 
-// DELETE: ユーザーの削除
+/**
+ * @openapi
+ * /api/admin/users/{id}:
+ *   delete:
+ *     summary: ユーザー削除
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 削除されたユーザー
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

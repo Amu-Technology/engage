@@ -5,7 +5,30 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// 組織内の全PaymentTypeを取得
+/**
+ * @openapi
+ * /api/payment-types:
+ *   get:
+ *     summary: PaymentType一覧取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organizationId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: PaymentType一覧取得
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/PaymentType'
+ */
 export async function GET() {
   try {
     const session = await auth();
@@ -37,7 +60,46 @@ export async function GET() {
   }
 }
 
-// 新しいPaymentTypeを作成
+/**
+ * @openapi
+ * /api/payment-types:
+ *   post:
+ *     summary: PaymentType作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: PaymentType作成
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PaymentType'
+ *       500:
+ *         description: PaymentType作成に失敗しました
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       400:
+ *         description: 名前は必須です
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();

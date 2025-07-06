@@ -2,6 +2,30 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/leads/{id}/status-history:
+ *   get:
+ *     summary: リードのステータス履歴取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: リードのステータス履歴
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/LeadStatusHistory'
+ */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

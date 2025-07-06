@@ -2,6 +2,30 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/leads/{id}/activities/{activityId}:
+ *   put:
+ *     summary: リードアクティビティ更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string 
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: リードアクティビティ更新
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LeadActivity'
+ */
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string; activityId: string }> }
@@ -59,6 +83,31 @@ export async function PUT(
   }
 }
 
+/**
+ * @openapi
+ * /api/leads/{id}/activities/{activityId}:
+ *   delete:
+ *     summary: リードアクティビティ削除
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: リードアクティビティ削除
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string; activityId: string }> }

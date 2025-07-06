@@ -2,6 +2,21 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/leads-status:
+ *   get:
+ *     summary: リードステータス一覧取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organizationId:
+ *                 type: string
+ */
 export async function GET() {
   try {
     const session = await auth()
@@ -30,6 +45,30 @@ export async function GET() {
   }
 }
 
+/**
+ * @openapi
+ * /api/leads-status:
+ *   post:
+ *     summary: リードステータス作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               color:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: リードステータス作成
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LeadsStatus'
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth()
@@ -67,6 +106,32 @@ export async function POST(request: Request) {
   }
 }
 
+/**
+ * @openapi
+ * /api/leads-status:
+ *   put:
+ *     summary: リードステータス更新
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               color:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: リードステータス更新
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LeadsStatus'
+ */
 export async function PUT(request: Request) {
   try {
     const session = await auth()

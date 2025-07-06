@@ -2,6 +2,30 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
+/**
+ * @openapi
+ * /api/memos:
+ *   get:
+ *     summary: メモ一覧取得
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: メモ一覧
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Memo'
+ */
 export async function GET(request: Request) {
   try {
     const session = await auth()
@@ -48,6 +72,32 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * @openapi
+ * /api/memos:
+ *   post:
+ *     summary: メモ作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *               note:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: メモ作成
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Memo'
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth()
