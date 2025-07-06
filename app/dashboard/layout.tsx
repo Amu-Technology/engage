@@ -3,7 +3,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { Icon, IconChartBar, IconDashboard, IconFolder, IconListDetails, IconSettings, IconUserCheck, IconUsers } from "@tabler/icons-react";
+import { Icon, IconCalendar, IconChartBar, IconDashboard, IconFolder, IconListDetails, IconMapPin, IconNote, IconPigMoney, IconReportMoney, IconSettings, IconUserCheck, IconUsers, IconWalk, IconWriting } from "@tabler/icons-react";
 
 type NavItem = {
   title: string;
@@ -23,16 +23,16 @@ const baseNavItems: NavItem[] = [
     icon: IconUserCheck,
     children: [
       { title: "リード管理", url: "/dashboard/leads", icon: IconUserCheck },
-      { title: "カレンダー", url: "/dashboard/calendar", icon: IconUserCheck },
-      { title: "マップ表示", url: "/dashboard/map", icon: IconUserCheck },
+      { title: "カレンダー", url: "/dashboard/calendar", icon: IconCalendar },
+      { title: "マップ表示", url: "/dashboard/map", icon: IconMapPin },
     ],
   },
   {
     title: "実績管理",
     icon: IconListDetails,
     children: [
-      { title: "実績記録", url: "/dashboard/actions", icon: IconListDetails },
-      { title: "入金管理", url: "/dashboard/payments", icon: IconListDetails },
+      { title: "実績記録", url: "/dashboard/actions", icon: IconWalk },
+      { title: "入金管理", url: "/dashboard/payments", icon: IconPigMoney },
       {
         title: "イベント管理",
         url: "/dashboard/events",
@@ -57,7 +57,7 @@ const baseNavItems: NavItem[] = [
       {
         title: "メモタイプ設定",
         url: "/dashboard/settings/memotypes",
-        icon: IconFolder,
+        icon: IconNote,
       },
       {
         title: "アクティビティタイプ設定",
@@ -67,7 +67,7 @@ const baseNavItems: NavItem[] = [
       {
         title: "入金タイプ設定",
         url: "/dashboard/settings/payment-types",
-        icon: IconFolder,
+        icon: IconReportMoney,
       },
     ],
   },
